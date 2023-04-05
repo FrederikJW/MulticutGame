@@ -1,4 +1,4 @@
-from MulticutGame import MulticutGame
+from multicut_game import MulticutGame
 
 
 def main():
