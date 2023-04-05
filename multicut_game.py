@@ -37,7 +37,7 @@ class MulticutGame:
         self.init_buttons()
 
         self.game_modes = {
-            'classic': ClassicGameMode(),
+            'classic': ClassicGameMode(300, 0, 980, 720),
         }
 
     def init_buttons(self):
@@ -85,10 +85,12 @@ class MulticutGame:
 
             # run game mode
             if self.current_game_mode is not None:
-                self.game_modes[self.current_game_mode].run()
+                game_mode = self.game_modes[self.current_game_mode]
+                game_mode.run()
+                self.screen.blit(*game_mode.objects())
 
-            self.clock.tick(30)  # 30 FPS
             pygame.display.update()
+            self.clock.tick(30)  # 30 FPS
 
     def quit(self):
         pygame.quit()
