@@ -18,8 +18,6 @@ class GameMode(metaclass=abc.ABCMeta):
 
 
 class ClassicGameMode(GameMode):
-    def __init__(self):
-
 
     def run(self):
         pass
