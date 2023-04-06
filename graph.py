@@ -1,3 +1,4 @@
+import numpy
 import pygame
 
 from pygame import gfxdraw
@@ -37,6 +38,14 @@ class Graph:
             return self.vertices[vertex_id]
         return None
 
+    def move_vertex_to_group(self, vertex, group):
+        group_old = vertex.group
+        group_old.remove_vertex(vertex)
+        if len(group_old.vertices) == 0:
+            self.groups.remove(group_old)
+        vertex.group = group
+        group.add_vertex(vertex)
+
     def draw(self, highlight_group=None):
         self.surface.fill(COLOR_KEY)
 
@@ -58,6 +67,8 @@ class Graph:
                 vertex = list(group.vertices.values())[0]
                 gfxdraw.aacircle(self.surface, *vertex.pos, 10, DARK_BLUE)
                 gfxdraw.filled_circle(self.surface, *vertex.pos, 10, DARK_BLUE)
+            elif len(group.vertices) > 1:
+                group.draw_mini_graph(self.surface, size_increase)
 
     def objects(self):
         return self.surface, self.rec
@@ -73,6 +84,29 @@ class Group:
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
 
+    def remove_vertex(self, vertex):
+        self.vertices.pop(vertex.id)
+
+    def draw_mini_graph(self, surface, size_increase):
+        rel_pos = {}
+
+        center = numpy.zeros((1, 2))
+        for vertex in self.vertices.values():
+            center += numpy.array(vertex.init_pos)
+        center /= len(self.vertices)
+        for vertex in self.vertices.values():
+            rel_pos[vertex] = (numpy.array(vertex.init_pos) - center) / 5  # smaller by a factor of 6
+
+        radius = int((self.rec.width / 2) + size_increase)
+        gfxdraw.aacircle(surface, *self.pos, radius, DARK_BLUE)
+        gfxdraw.aacircle(surface, *self.pos, radius - 1, LIGHT_BLUE)
+        gfxdraw.filled_circle(surface, *self.pos, radius - 1, LIGHT_BLUE)
+
+        for vertex in self.vertices.values():
+            pos = tuple(round(n) for n in (numpy.array(self.pos) + rel_pos[vertex])[0])
+            gfxdraw.aacircle(surface, *pos, 5, DARK_BLUE)
+            gfxdraw.filled_circle(surface, *pos, 5, DARK_BLUE)
+
     def move(self, pos):
         self.pos = pos
         self.rec.center = pos
@@ -81,6 +115,7 @@ class Group:
 class Vertex:
     def __init__(self, id, pos):
         self.pos = pos
+        self.init_pos = pos
         self.rec = pygame.Rect((0, 0), (20, 20))
         self.rec.center = self.pos
         self.id = id

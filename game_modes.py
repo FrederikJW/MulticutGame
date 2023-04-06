@@ -63,6 +63,13 @@ class ClassicGameMode(GameMode):
                         self.move_vertex = vertex
                         break
             elif event.type == pygame.MOUSEBUTTONUP:
+                if self.move_vertex is not None:
+                    for group in self.graph.groups:
+                        if group != self.move_vertex.group and group.rec.colliderect(self.move_vertex.group.rec):
+                            self.graph.move_vertex_to_group(self.move_vertex, group)
+                            self.surface.fill(WHITE)
+                            self.graph.draw(highlight_group)
+                            break
                 self.move_vertex = None
 
         if self.move_vertex is not None:
