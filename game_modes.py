@@ -23,7 +23,7 @@ class GameMode(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def run(self):
+    def run(self, events):
         pass
 
     @abc.abstractmethod
@@ -38,13 +38,32 @@ class ClassicGameMode(GameMode):
         self.graph = Graph(0, 185, self.rec.width, self.rec.height - 185)
         for i in range(4):
             self.graph.add_vertex(Vertex(i, ((i % 2) * 80 + 40, ((i // 2) * 80 + 40))))
-        for i in range(4):
-            self.graph.add_edge(i, (i+1) % 4)
+        self.graph.add_edge(0, 1, -1)
+        self.graph.add_edge(0, 2, 1)
+        self.graph.add_edge(2, 3, -1)
+        self.graph.add_edge(1, 3, 1)
+        self.move_vertex = None
 
     def switch_to(self):
         pass
 
-    def run(self):
+    def run(self, events):
+        offset = (self.graph.rec[0] + self.rec[0], self.graph.rec[1] + self.rec[1])
+        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = (mouse_pos[0] - offset[0], mouse_pos[1] - offset[1])
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for vertex in self.graph.vertices.values():
+                    if vertex.rec.collidepoint(mouse_pos):
+                        self.move_vertex = vertex
+                        break
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self.move_vertex = None
+
+        if self.move_vertex is not None:
+            self.move_vertex.move(mouse_pos)
+            self.surface.fill(WHITE)
+            self.graph.draw()
         self.surface.blit(*self.graph.objects())
 
     def exit(self):

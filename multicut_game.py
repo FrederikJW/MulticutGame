@@ -69,8 +69,9 @@ class MulticutGame:
     def run(self):
         while True:
             mouse_pos = pygame.mouse.get_pos()
+            events = pygame.event.get()
             # Handle events
-            for event in pygame.event.get():
+            for event in events:
                 if event.type == pygame.QUIT:
                     self.quit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -86,7 +87,7 @@ class MulticutGame:
             # run game mode
             if self.current_game_mode is not None:
                 game_mode = self.game_modes[self.current_game_mode]
-                game_mode.run()
+                game_mode.run(events)
                 self.screen.blit(*game_mode.objects())
 
             pygame.display.update()

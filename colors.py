@@ -9,4 +9,7 @@ DARK_GREEN = (62, 142, 65)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-COLOR_KEY = (255, 0, 255)  # ugly purple used for transparent background
+# antialiasing smooths the border between two colors, in the surface the color key is the background but on the screen
+# the color key is replaced by white so in order to make antialiasing work the color key needs to be as close to white
+# as possible but not white itself because white can also be used as a color
+COLOR_KEY = (255, 254, 255)

@@ -3,14 +3,15 @@ import pygame
 from pygame import gfxdraw
 
 from colors import *
+from utils import draw_thick_aaline
 
 
 class Graph:
     def __init__(self, x, y, width, height):
-        self.vertices = dict()
+        self.vertices = {}
+        self.edges = []
 
         self.surface = pygame.Surface((width, height))
-        self.surface.fill(COLOR_KEY)
         self.surface.set_colorkey(COLOR_KEY)
         self.rec = pygame.Rect(x, y, width, height)
 
@@ -21,8 +22,12 @@ class Graph:
         self.draw()
 
     def add_edge(self, vertex1_id, vertex2_id, weight=-1):
-        self.vertices[vertex1_id].add_edge(vertex2_id, weight)
-        self.vertices[vertex2_id].add_edge(vertex1_id, weight)
+        vertex1 = self.vertices[vertex1_id]
+        vertex2 = self.vertices[vertex2_id]
+        edge = Edge(vertex1, vertex2, weight)
+        self.edges.append(edge)
+        vertex1.add_edge(vertex2_id, edge)
+        vertex2.add_edge(vertex1_id, edge)
         self.draw()
 
     def get_vertex(self, vertex_id):
@@ -31,10 +36,11 @@ class Graph:
         return None
 
     def draw(self):
+        self.surface.fill(COLOR_KEY)
+
         # draw edges
-        for vertex in self.vertices.values():
-            for vertex2_id, weight in vertex.edges.items():
-                gfxdraw.line(self.surface, *vertex.pos, *self.get_vertex(vertex2_id).pos, GREEN)
+        for edge in self.edges:
+            draw_thick_aaline(self.surface, edge.vertex1.pos, edge.vertex2.pos, RED if edge.weight == 1 else GREEN, 2)
 
         # draw vertices
         for vertex in self.vertices.values():
@@ -51,14 +57,28 @@ class Graph:
 class Vertex:
     def __init__(self, id, pos):
         self.pos = pos
+        self.rec = pygame.Rect((0, 0), (20, 20))
+        self.rec.center = self.pos
         self.id = id
         self.edges = {}
 
-    def add_edge(self, vertex_id, weight=-1):
-        self.edges[vertex_id] = weight
+    def add_edge(self, vertex_id, edge):
+        self.edges[vertex_id] = edge
 
     def get_edges(self):
-        self.edges.keys()
+        return self.edges.values()
 
     def get_weight(self, vertex_id):
-        return self.edges[vertex_id]
+        return self.edges[vertex_id].weight
+
+    def move(self, pos):
+        self.pos = pos
+        self.rec = pygame.Rect((0, 0), (20, 20))
+        self.rec.center = self.pos
+
+
+class Edge:
+    def __init__(self, vertex1, vertex2, weight):
+        self.weight = weight
+        self.vertex1 = vertex1
+        self.vertex2 = vertex2
