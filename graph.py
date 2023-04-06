@@ -8,6 +8,7 @@ from utils import draw_thick_aaline
 
 class Graph:
     def __init__(self, x, y, width, height):
+        self.groups = []
         self.vertices = {}
         self.edges = []
 
@@ -19,6 +20,7 @@ class Graph:
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
+        self.groups.append(vertex.group)
         self.draw()
 
     def add_edge(self, vertex1_id, vertex2_id, weight=-1):
@@ -35,7 +37,7 @@ class Graph:
             return self.vertices[vertex_id]
         return None
 
-    def draw(self):
+    def draw(self, highlight_group=None):
         self.surface.fill(COLOR_KEY)
 
         # draw edges
@@ -43,15 +45,37 @@ class Graph:
             draw_thick_aaline(self.surface, edge.vertex1.pos, edge.vertex2.pos, RED if edge.weight == 1 else GREEN, 2)
 
         # draw vertices
-        for vertex in self.vertices.values():
-            gfxdraw.aacircle(self.surface, *vertex.pos, 20, DARK_BLUE)
-            gfxdraw.aacircle(self.surface, *vertex.pos, 19, LIGHT_BLUE)
-            gfxdraw.filled_circle(self.surface, *vertex.pos, 19, LIGHT_BLUE)
-            gfxdraw.aacircle(self.surface, *vertex.pos, 10, DARK_BLUE)
-            gfxdraw.filled_circle(self.surface, *vertex.pos, 10, DARK_BLUE)
+        for group in self.groups:
+            size_increase = 0
+            if group == highlight_group:
+                size_increase = 5
+            if len(group.vertices) == 1:
+                radius = int((group.rec.width/2) + size_increase)
+                gfxdraw.aacircle(self.surface, *group.pos, radius, DARK_BLUE)
+                gfxdraw.aacircle(self.surface, *group.pos, radius - 1, LIGHT_BLUE)
+                gfxdraw.filled_circle(self.surface, *group.pos, radius - 1, LIGHT_BLUE)
+
+                vertex = list(group.vertices.values())[0]
+                gfxdraw.aacircle(self.surface, *vertex.pos, 10, DARK_BLUE)
+                gfxdraw.filled_circle(self.surface, *vertex.pos, 10, DARK_BLUE)
 
     def objects(self):
         return self.surface, self.rec
+
+
+class Group:
+    def __init__(self, pos):
+        self.vertices = {}
+        self.pos = pos
+        self.rec = pygame.Rect((0, 0), (40, 40))
+        self.rec.center = pos
+
+    def add_vertex(self, vertex):
+        self.vertices[vertex.id] = vertex
+
+    def move(self, pos):
+        self.pos = pos
+        self.rec.center = pos
 
 
 class Vertex:
@@ -61,6 +85,8 @@ class Vertex:
         self.rec.center = self.pos
         self.id = id
         self.edges = {}
+        self.group = Group(pos)
+        self.group.add_vertex(self)
 
     def add_edge(self, vertex_id, edge):
         self.edges[vertex_id] = edge
@@ -73,8 +99,9 @@ class Vertex:
 
     def move(self, pos):
         self.pos = pos
-        self.rec = pygame.Rect((0, 0), (20, 20))
-        self.rec.center = self.pos
+        self.rec.center = pos
+        if len(self.group.vertices) == 1:
+            self.group.move(pos)
 
 
 class Edge:
