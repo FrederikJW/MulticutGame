@@ -43,6 +43,13 @@ class Graph:
         group_old.remove_vertex(vertex)
         if len(group_old.vertices) == 0:
             self.groups.remove(group_old)
+        else:
+            group_old.calculate_pos()
+
+        if group is None:
+            group = Group(vertex.pos)
+            self.groups.append(group)
+
         vertex.group = group
         group.add_vertex(vertex)
         group.calculate_pos()
@@ -81,6 +88,13 @@ class Group:
         self.vertices.pop(vertex.id)
 
     def calculate_pos(self):
+        if len(self.vertices) == 1:
+            self.rec.size = (40, 40)
+            list(self.vertices.values())[0].move(self.pos)
+            self.move(self.pos)
+            return
+
+        max_distance = 0
         self.rel_pos = {}
 
         center = numpy.zeros((2,))
@@ -90,9 +104,15 @@ class Group:
 
         for vertex in self.vertices.values():
             rel_pos = (numpy.array(vertex.init_pos) - center) / 2
+            distance = numpy.linalg.norm(rel_pos)
+            max_distance = distance if distance > max_distance else max_distance
             self.rel_pos[vertex] = rel_pos
             total_pos = tuple(round(n) for n in (numpy.array(self.pos) + self.rel_pos[vertex]))
             vertex.move(total_pos)
+
+        diameter = max_distance * 2 + 40
+        self.rec.size = (diameter, diameter)
+        self.move(self.pos)
 
     def draw(self, surface, highlight):
         size_increase = 0
@@ -104,6 +124,7 @@ class Group:
         gfxdraw.filled_circle(surface, *self.pos, radius - 1, LIGHT_BLUE)
 
     def move(self, pos):
+        pos = (round(pos[0]), round(pos[1]))
         self.pos = pos
         self.rec.center = pos
 
@@ -133,6 +154,7 @@ class Vertex:
         return self.edges[vertex_id].weight
 
     def move(self, pos):
+        pos = (round(pos[0]), round(pos[1]))
         self.pos = pos
         self.rec.center = pos
         if len(self.group.vertices) == 1:

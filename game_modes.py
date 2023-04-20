@@ -61,6 +61,8 @@ class ClassicGameMode(GameMode):
                 for vertex in self.graph.vertices.values():
                     if vertex.rec.collidepoint(mouse_pos):
                         self.move_vertex = vertex
+                        if len(self.move_vertex.group.vertices) > 1:
+                            self.graph.move_vertex_to_group(self.move_vertex, None)
                         break
             elif event.type == pygame.MOUSEBUTTONUP:
                 if self.move_vertex is not None:
