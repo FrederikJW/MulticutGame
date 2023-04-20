@@ -45,30 +45,22 @@ class Graph:
             self.groups.remove(group_old)
         vertex.group = group
         group.add_vertex(vertex)
+        group.calculate_pos()
 
     def draw(self, highlight_group=None):
         self.surface.fill(COLOR_KEY)
 
+        # draw groups
+        for group in self.groups:
+            group.draw(self.surface, group == highlight_group)
+
         # draw edges
         for edge in self.edges:
-            draw_thick_aaline(self.surface, edge.vertex1.pos, edge.vertex2.pos, RED if edge.weight == 1 else GREEN, 2)
+            edge.draw(self.surface)
 
         # draw vertices
-        for group in self.groups:
-            size_increase = 0
-            if group == highlight_group:
-                size_increase = 5
-            if len(group.vertices) == 1:
-                radius = int((group.rec.width/2) + size_increase)
-                gfxdraw.aacircle(self.surface, *group.pos, radius, DARK_BLUE)
-                gfxdraw.aacircle(self.surface, *group.pos, radius - 1, LIGHT_BLUE)
-                gfxdraw.filled_circle(self.surface, *group.pos, radius - 1, LIGHT_BLUE)
-
-                vertex = list(group.vertices.values())[0]
-                gfxdraw.aacircle(self.surface, *vertex.pos, 10, DARK_BLUE)
-                gfxdraw.filled_circle(self.surface, *vertex.pos, 10, DARK_BLUE)
-            elif len(group.vertices) > 1:
-                group.draw_mini_graph(self.surface, size_increase)
+        for vertex in self.vertices.values():
+            vertex.draw(self.surface)
 
     def objects(self):
         return self.surface, self.rec
@@ -80,6 +72,7 @@ class Group:
         self.pos = pos
         self.rec = pygame.Rect((0, 0), (40, 40))
         self.rec.center = pos
+        self.rel_pos = {}
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
@@ -87,25 +80,28 @@ class Group:
     def remove_vertex(self, vertex):
         self.vertices.pop(vertex.id)
 
-    def draw_mini_graph(self, surface, size_increase):
-        rel_pos = {}
+    def calculate_pos(self):
+        self.rel_pos = {}
 
-        center = numpy.zeros((1, 2))
+        center = numpy.zeros((2,))
         for vertex in self.vertices.values():
             center += numpy.array(vertex.init_pos)
         center /= len(self.vertices)
-        for vertex in self.vertices.values():
-            rel_pos[vertex] = (numpy.array(vertex.init_pos) - center) / 5  # smaller by a factor of 6
 
+        for vertex in self.vertices.values():
+            rel_pos = (numpy.array(vertex.init_pos) - center) / 2
+            self.rel_pos[vertex] = rel_pos
+            total_pos = tuple(round(n) for n in (numpy.array(self.pos) + self.rel_pos[vertex]))
+            vertex.move(total_pos)
+
+    def draw(self, surface, highlight):
+        size_increase = 0
+        if highlight:
+            size_increase = 5
         radius = int((self.rec.width / 2) + size_increase)
         gfxdraw.aacircle(surface, *self.pos, radius, DARK_BLUE)
         gfxdraw.aacircle(surface, *self.pos, radius - 1, LIGHT_BLUE)
         gfxdraw.filled_circle(surface, *self.pos, radius - 1, LIGHT_BLUE)
-
-        for vertex in self.vertices.values():
-            pos = tuple(round(n) for n in (numpy.array(self.pos) + rel_pos[vertex])[0])
-            gfxdraw.aacircle(surface, *pos, 5, DARK_BLUE)
-            gfxdraw.filled_circle(surface, *pos, 5, DARK_BLUE)
 
     def move(self, pos):
         self.pos = pos
@@ -122,6 +118,10 @@ class Vertex:
         self.edges = {}
         self.group = Group(pos)
         self.group.add_vertex(self)
+
+    def draw(self, surface):
+        gfxdraw.aacircle(surface, *self.pos, 10, DARK_BLUE)
+        gfxdraw.filled_circle(surface, *self.pos, 10, DARK_BLUE)
 
     def add_edge(self, vertex_id, edge):
         self.edges[vertex_id] = edge
@@ -144,3 +144,6 @@ class Edge:
         self.weight = weight
         self.vertex1 = vertex1
         self.vertex2 = vertex2
+
+    def draw(self, surface):
+        draw_thick_aaline(surface, self.vertex1.pos, self.vertex2.pos, RED if self.weight == 1 else GREEN, 2)
