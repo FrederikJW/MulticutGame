@@ -1,4 +1,5 @@
 import math
+
 import numpy
 from pygame import gfxdraw
 
@@ -9,9 +10,9 @@ def draw_thick_aaline(surface, pos1, pos2, color, width):
     pos1_array = numpy.array(pos1)
     pos2_array = numpy.array(pos2)
     centerx, centery = tuple((pos1_array + pos2_array) / 2)
-    length = math.hypot(*(pos2_array-pos1_array))
+    length = math.hypot(*(pos2_array - pos1_array))
     angle = math.atan2(pos1_array[1] - pos2_array[1], pos1_array[0] - pos2_array[0])
-    width2, length2 = width/2, length/2
+    width2, length2 = width / 2, length / 2
     sin_ang, cos_ang = math.sin(angle), math.cos(angle)
 
     width2_sin_ang = width2 * sin_ang

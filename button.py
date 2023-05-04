@@ -26,7 +26,7 @@ class Button:
         self.font = pygame.font.SysFont('Ariel', 32)
         self.text_surface = self.font.render(label, True, self.text_color)
         self.text_rec = self.text_surface.get_rect()
-        self.text_rec.center = (width/2, height/2)
+        self.text_rec.center = (width / 2, height / 2)
 
         self.surface = pygame.Surface((width, height))
         # make transparent background, read more here: https://riptutorial.com/pygame/example/23788/transparency

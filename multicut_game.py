@@ -1,10 +1,13 @@
-import pygame
 import sys
-
-from button import Button
-from game_modes import ClassicGameMode
 from enum import Enum
 from functools import partial
+
+import pygame
+
+import colors
+import constants
+from button import Button
+from game_modes import ClassicGameMode
 
 
 class GameMode(Enum):
@@ -12,23 +15,19 @@ class GameMode(Enum):
 
 
 class MulticutGame:
-    SCREEN_WIDTH = 1280
-    SCREEN_HEIGHT = 720
-    SCREEN_COLOR = (255, 255, 255)
-
     def __init__(self):
         pygame.init()
         self.clock = pygame.time.Clock()
 
         # Set up font
         self.font = pygame.font.SysFont('Ariel', 32)
-        self.text = self.font.render("0", True, (0, 0, 0))
+        self.text = self.font.render("0", True, colors.BLACK)
 
         # Set up screen
-        self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT), pygame.SCALED)
+        self.screen = pygame.display.set_mode(constants.SCREEN_SIZE, pygame.SCALED)
         pygame.display.set_caption("Multicut Game")
 
-        self.screen.fill((255, 255, 255))
+        self.screen.fill(colors.WHITE)
         pygame.display.update()
 
         # Set up buttons
@@ -37,7 +36,7 @@ class MulticutGame:
         self.init_buttons()
 
         self.game_modes = {
-            'classic': ClassicGameMode(300, 0, 980, 720),
+            'classic': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE),
         }
 
     def init_buttons(self):
@@ -91,7 +90,7 @@ class MulticutGame:
                 self.screen.blit(*game_mode.objects())
 
             pygame.display.update()
-            self.clock.tick(30)  # 30 FPS
+            self.clock.tick(constants.FRAMES_PER_SECOND)
 
     def quit(self):
         pygame.quit()

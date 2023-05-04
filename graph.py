@@ -1,10 +1,32 @@
 import numpy
 import pygame
-
 from pygame import gfxdraw
 
+import constants
 from colors import *
 from utils import draw_thick_aaline
+
+
+class GraphFactory:
+    @staticmethod
+    def generate_grid(size):
+        graph = Graph(*constants.GRAPH_SCREEN_RELATIVE_OFFSET, *constants.GRAPH_SCREEN_SIZE)
+        i = 0
+        for y in range(size[1]):
+            for x in range(size[0]):
+                graph.add_vertex(
+                    Vertex(i, (x * constants.GRAPH_VERTEX_DISTANCE + constants.GRAPH_RELATIVE_OFFSET[0],
+                               y * constants.GRAPH_VERTEX_DISTANCE + constants.GRAPH_RELATIVE_OFFSET[1])))
+                i += 1
+        i = 0
+        for y in range(size[1]):
+            for x in range(size[0]):
+                if x != size[0] - 1:
+                    graph.add_edge(i, i + 1, 1)
+                if y != size[1] - 1:
+                    graph.add_edge(i, i + size[0], 1)
+                i += 1
+        return graph
 
 
 class Graph:
@@ -77,9 +99,14 @@ class Group:
     def __init__(self, pos):
         self.vertices = {}
         self.pos = pos
-        self.rec = pygame.Rect((0, 0), (40, 40))
-        self.rec.center = pos
+        self.radius = constants.GRAPH_GROUP_RADIUS
         self.rel_pos = {}
+
+    @property
+    def rec(self):
+        rec = pygame.Rect((0, 0), (2 * self.radius, 2 * self.radius))
+        rec.center = self.pos
+        return rec
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
@@ -89,9 +116,8 @@ class Group:
 
     def calculate_pos(self):
         if len(self.vertices) == 1:
-            self.rec.size = (40, 40)
+            self.radius = constants.GRAPH_GROUP_RADIUS
             list(self.vertices.values())[0].move(self.pos)
-            self.move(self.pos)
             return
 
         max_distance = 0
@@ -110,39 +136,37 @@ class Group:
             total_pos = tuple(round(n) for n in (numpy.array(self.pos) + self.rel_pos[vertex]))
             vertex.move(total_pos)
 
-        diameter = max_distance * 2 + 40
-        self.rec.size = (diameter, diameter)
-        self.move(self.pos)
+        self.radius = max_distance + constants.GRAPH_GROUP_OVERSIZE
 
     def draw(self, surface, highlight):
         size_increase = 0
         if highlight:
             size_increase = 5
-        radius = int((self.rec.width / 2) + size_increase)
+        radius = round(self.radius + size_increase)
         gfxdraw.aacircle(surface, *self.pos, radius, DARK_BLUE)
         gfxdraw.aacircle(surface, *self.pos, radius - 1, LIGHT_BLUE)
         gfxdraw.filled_circle(surface, *self.pos, radius - 1, LIGHT_BLUE)
-
-    def move(self, pos):
-        pos = (round(pos[0]), round(pos[1]))
-        self.pos = pos
-        self.rec.center = pos
 
 
 class Vertex:
     def __init__(self, id, pos):
         self.pos = pos
         self.init_pos = pos
-        self.rec = pygame.Rect((0, 0), (20, 20))
-        self.rec.center = self.pos
+        self.radius = constants.GRAPH_VERTEX_RADIUS
         self.id = id
         self.edges = {}
         self.group = Group(pos)
         self.group.add_vertex(self)
 
+    @property
+    def rec(self):
+        rec = pygame.Rect((0, 0), (2 * self.radius, 2 * self.radius))
+        rec.center = self.pos
+        return rec
+
     def draw(self, surface):
-        gfxdraw.aacircle(surface, *self.pos, 10, DARK_BLUE)
-        gfxdraw.filled_circle(surface, *self.pos, 10, DARK_BLUE)
+        gfxdraw.aacircle(surface, *self.pos, self.radius, DARK_BLUE)
+        gfxdraw.filled_circle(surface, *self.pos, self.radius, DARK_BLUE)
 
     def add_edge(self, vertex_id, edge):
         self.edges[vertex_id] = edge
@@ -156,9 +180,8 @@ class Vertex:
     def move(self, pos):
         pos = (round(pos[0]), round(pos[1]))
         self.pos = pos
-        self.rec.center = pos
         if len(self.group.vertices) == 1:
-            self.group.move(pos)
+            self.group.pos = pos
 
 
 class Edge:

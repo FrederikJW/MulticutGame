@@ -1,9 +1,9 @@
 import abc
+
 import pygame
 
-from graph import Graph, Vertex
-
 from colors import *
+from graph import GraphFactory
 
 
 # abstract game mode class
@@ -34,14 +34,8 @@ class GameMode(metaclass=abc.ABCMeta):
 class ClassicGameMode(GameMode):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.graph = GraphFactory.generate_grid((4, 4))
 
-        self.graph = Graph(0, 185, self.rec.width, self.rec.height - 185)
-        for i in range(4):
-            self.graph.add_vertex(Vertex(i, ((i % 2) * 80 + 40, ((i // 2) * 80 + 40))))
-        self.graph.add_edge(0, 1, -1)
-        self.graph.add_edge(0, 2, 1)
-        self.graph.add_edge(2, 3, -1)
-        self.graph.add_edge(1, 3, 1)
         self.move_vertex = None
         self.offset = (self.graph.rec[0] + self.rec[0], self.graph.rec[1] + self.rec[1])
 
