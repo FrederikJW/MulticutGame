@@ -1,9 +1,14 @@
+import asyncio
+import random
+
+import networkx as nx
 import numpy
 import pygame
 from pygame import gfxdraw
 
 import constants
 from colors import *
+from solvers import multicut_ilp
 from utils import draw_thick_aaline
 
 
@@ -22,10 +27,13 @@ class GraphFactory:
         for y in range(size[1]):
             for x in range(size[0]):
                 if x != size[0] - 1:
-                    graph.add_edge(i, i + 1, 1)
+                    graph.add_edge(i, i + 1, random.choice([-1, 1]))
                 if y != size[1] - 1:
-                    graph.add_edge(i, i + size[0], 1)
+                    graph.add_edge(i, i + size[0], random.choice([-1, 1]))
                 i += 1
+
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(graph.calculate_solution())
         return graph
 
 
@@ -38,8 +46,16 @@ class Graph:
         self.surface = pygame.Surface((width, height))
         self.surface.set_colorkey(COLOR_KEY)
         self.rec = pygame.Rect(x, y, width, height)
+        self.optimal_score = None
+        self.optimal_edge_set = None
 
         self.draw()
+
+    def get_nx_graph(self):
+        graph = nx.Graph()
+        graph.add_nodes_from([v.id for v in self.vertices.values()])
+        graph.add_edges_from([(e.vertex1.id, e.vertex2.id, {'weight': e.weight}) for e in self.edges])
+        return graph
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
@@ -75,6 +91,16 @@ class Graph:
         vertex.group = group
         group.add_vertex(vertex)
         group.calculate_pos()
+
+    async def calculate_solution(self):
+        self.optimal_edge_set, self.optimal_score = await multicut_ilp(self.get_nx_graph())
+
+    def get_score(self):
+        score = 0
+        for edge in self.edges:
+            if edge.vertex1.group != edge.vertex2.group:
+                score += edge.weight
+        return score
 
     def draw(self, highlight_group=None):
         self.surface.fill(COLOR_KEY)

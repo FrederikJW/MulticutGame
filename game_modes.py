@@ -2,6 +2,7 @@ import abc
 
 import pygame
 
+import colors
 from colors import *
 from graph import GraphFactory
 
@@ -38,9 +39,31 @@ class ClassicGameMode(GameMode):
 
         self.move_vertex = None
         self.offset = (self.graph.rec[0] + self.rec[0], self.graph.rec[1] + self.rec[1])
+        self.font = pygame.font.SysFont('Ariel', 32)
+        self.print_score()
+        self.draw_necessary = True
 
     def switch_to(self):
         pass
+
+    def print_score(self):
+        score_surface = self.font.render(f"score={self.graph.get_score()}", True, colors.BLACK)
+        score_rec = score_surface.get_rect()
+        optimal_score_surface = self.font.render(f"optimal score={int(self.graph.optimal_score)}", True, colors.BLACK)
+        optimal_score_rec = optimal_score_surface.get_rect()
+        optimal_score_rec = optimal_score_rec.move(0, 20)
+
+        self.surface.blit(score_surface, score_rec)
+        self.surface.blit(optimal_score_surface, optimal_score_rec)
+
+    def draw(self, highlight_group):
+        if not self.draw_necessary:
+            return
+        self.draw_necessary = False
+        self.surface.fill(WHITE)
+        self.graph.draw(highlight_group)
+        self.print_score()
+        self.surface.blit(*self.graph.objects())
 
     def run(self, events):
         highlight_group = None
@@ -63,8 +86,7 @@ class ClassicGameMode(GameMode):
                     for group in self.graph.groups:
                         if group != self.move_vertex.group and group.rec.colliderect(self.move_vertex.group.rec):
                             self.graph.move_vertex_to_group(self.move_vertex, group)
-                            self.surface.fill(WHITE)
-                            self.graph.draw(highlight_group)
+                            self.draw_necessary = True
                             break
                 self.move_vertex = None
 
@@ -75,9 +97,9 @@ class ClassicGameMode(GameMode):
                     highlight_group = group
                     break
 
-            self.surface.fill(WHITE)
-            self.graph.draw(highlight_group)
-        self.surface.blit(*self.graph.objects())
+            self.draw_necessary = True
+
+        self.draw(highlight_group)
 
     def exit(self):
         pass
