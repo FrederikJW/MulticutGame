@@ -49,7 +49,12 @@ class ClassicGameMode(GameMode):
     def print_score(self):
         score_surface = self.font.render(f"score={self.graph.get_score()}", True, colors.BLACK)
         score_rec = score_surface.get_rect()
-        optimal_score_surface = self.font.render(f"optimal score={int(self.graph.optimal_score)}", True, colors.BLACK)
+        optimal_score = self.graph.optimal_score
+        if optimal_score is None:
+            optimal_score = "calculating"
+        else:
+            optimal_score = str(int(optimal_score))
+        optimal_score_surface = self.font.render(f"optimal score={optimal_score}", True, colors.BLACK)
         optimal_score_rec = optimal_score_surface.get_rect()
         optimal_score_rec = optimal_score_rec.move(0, 20)
 

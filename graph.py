@@ -1,4 +1,4 @@
-import asyncio
+import threading
 import random
 
 import networkx as nx
@@ -32,8 +32,9 @@ class GraphFactory:
                     graph.add_edge(i, i + size[0], random.choice([-1, 1]))
                 i += 1
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(graph.calculate_solution())
+        # calculating optimal solution is done in a new thread so the game can continue
+        my_thread = threading.Thread(target=graph.calculate_solution)
+        my_thread.start()
         return graph
 
 
@@ -92,8 +93,8 @@ class Graph:
         group.add_vertex(vertex)
         group.calculate_pos()
 
-    async def calculate_solution(self):
-        self.optimal_edge_set, self.optimal_score = await multicut_ilp(self.get_nx_graph())
+    def calculate_solution(self):
+        self.optimal_edge_set, self.optimal_score = multicut_ilp(self.get_nx_graph())
 
     def get_score(self):
         score = 0

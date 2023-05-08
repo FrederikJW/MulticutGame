@@ -1,7 +1,7 @@
 import pulp
 
 
-async def multicut_ilp(graph):
+def multicut_ilp(graph):
     # Define the ILP model which is a minimum multicut problem
     model = pulp.LpProblem("Multicut", pulp.LpMinimize)
 
