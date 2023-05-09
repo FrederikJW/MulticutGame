@@ -33,9 +33,14 @@ class GameMode(metaclass=abc.ABCMeta):
 
 
 class ClassicGameMode(GameMode):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.graph = GraphFactory.generate_grid((4, 4))
+    def __init__(self, x, y, width, height, graph_type, graph_width=4, graph_height=4):
+        super().__init__(x, y, width, height)
+
+        self.graph = None
+        if graph_type == 'grid':
+            self.graph = GraphFactory.generate_grid((graph_width, graph_height))
+        elif graph_type == 'pentagram':
+            self.graph = GraphFactory.generate_pentagram()
 
         self.move_vertex = None
         self.offset = (self.graph.rec[0] + self.rec[0], self.graph.rec[1] + self.rec[1])

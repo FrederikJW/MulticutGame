@@ -36,19 +36,21 @@ class MulticutGame:
         self.init_buttons()
 
         self.game_modes = {
-            'classic': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE),
+            'level1': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'grid', 4, 4),
+            'level2': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'grid', 5, 5),
+            'level3': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'pentagram'),
         }
 
     def init_buttons(self):
-        self.buttons.append(Button('Level1', 50, 190, 200, 40, 'blue', partial(self.change_game_mode, 'classic')))
-        self.buttons.append(Button('Level2', 50, 240, 200, 40, 'blue', None))
-        self.buttons.append(Button('Level3', 50, 290, 200, 40, 'blue', None))
-        self.buttons.append(Button('Level4', 50, 340, 200, 40, 'blue', None))
-        self.buttons.append(Button('Level5', 50, 390, 200, 40, 'blue', None))
-        self.buttons.append(Button('Level6', 50, 440, 200, 40, 'blue', None))
-        self.buttons.append(Button('Level7', 50, 490, 200, 40, 'blue', None))
-        self.buttons.append(Button('Level8', 50, 540, 200, 40, 'blue', None))
-        self.buttons.append(Button('Level9', 50, 590, 200, 40, 'blue', None))
+        self.buttons.append(Button('Tutorial', 50, 190, 200, 40, 'blue', None))
+        self.buttons.append(Button('Level1', 50, 240, 200, 40, 'blue', partial(self.change_game_mode, 'level1')))
+        self.buttons.append(Button('Level2', 50, 290, 200, 40, 'blue', partial(self.change_game_mode, 'level2')))
+        self.buttons.append(Button('Level3', 50, 340, 200, 40, 'blue', partial(self.change_game_mode, 'level3')))
+        self.buttons.append(Button('Empty', 50, 390, 200, 40, 'blue', None))
+        self.buttons.append(Button('Empty', 50, 440, 200, 40, 'blue', None))
+        self.buttons.append(Button('Empty', 50, 490, 200, 40, 'blue', None))
+        self.buttons.append(Button('Empty', 50, 540, 200, 40, 'blue', None))
+        self.buttons.append(Button('Empty', 50, 590, 200, 40, 'blue', None))
         self.buttons.append(Button('Quit', 50, 640, 200, 40, 'red', self.quit))
 
     def change_game_mode(self, game_mode):

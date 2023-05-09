@@ -1,3 +1,4 @@
+import math
 import threading
 import random
 
@@ -20,8 +21,8 @@ class GraphFactory:
         for y in range(size[1]):
             for x in range(size[0]):
                 graph.add_vertex(
-                    Vertex(i, (x * constants.GRAPH_VERTEX_DISTANCE + constants.GRAPH_RELATIVE_OFFSET[0],
-                               y * constants.GRAPH_VERTEX_DISTANCE + constants.GRAPH_RELATIVE_OFFSET[1])))
+                    Vertex(i, (x * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[0],
+                               y * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[1])))
                 i += 1
         i = 0
         for y in range(size[1]):
@@ -31,6 +32,27 @@ class GraphFactory:
                 if y != size[1] - 1:
                     graph.add_edge(i, i + size[0], random.choice([-1, 1]))
                 i += 1
+
+        # calculating optimal solution is done in a new thread so the game can continue
+        my_thread = threading.Thread(target=graph.calculate_solution)
+        my_thread.start()
+        return graph
+
+    @staticmethod
+    def generate_pentagram():
+        graph = Graph(*constants.GRAPH_SCREEN_RELATIVE_OFFSET, *constants.GRAPH_SCREEN_SIZE)
+
+        angle_distance = 360/5
+        radius = constants.GRAPH_PENTAGRAM_RADIUS
+        center = (constants.GRAPH_RELATIVE_OFFSET[0] + radius,
+                  constants.GRAPH_RELATIVE_OFFSET[1] + radius)
+
+        for i in range(5):
+            x = radius * (math.sin(math.pi * 2 * (angle_distance * i) / 360)) + center[0]
+            y = -(radius * (math.cos(math.pi * 2 * (angle_distance * i) / 360))) + center[1]
+            graph.add_vertex(Vertex(i, (x, y)))
+            for j in range(i):
+                graph.add_edge(i, j, random.choice([-1, 1]))
 
         # calculating optimal solution is done in a new thread so the game can continue
         my_thread = threading.Thread(target=graph.calculate_solution)
@@ -125,7 +147,7 @@ class Graph:
 class Group:
     def __init__(self, pos):
         self.vertices = {}
-        self.pos = pos
+        self.pos = (round(pos[0]), round(pos[1]))
         self.radius = constants.GRAPH_GROUP_RADIUS
         self.rel_pos = {}
 
@@ -177,12 +199,12 @@ class Group:
 
 class Vertex:
     def __init__(self, id, pos):
-        self.pos = pos
-        self.init_pos = pos
+        self.pos = (round(pos[0]), round(pos[1]))
+        self.init_pos = self.pos
         self.radius = constants.GRAPH_VERTEX_RADIUS
         self.id = id
         self.edges = {}
-        self.group = Group(pos)
+        self.group = Group(self.pos)
         self.group.add_vertex(self)
 
     @property
