@@ -1,0 +1,38 @@
+# My App.
+# Copyright (C) 2018
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"POT-Creation-Date: 2023-05-11 13:43+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: me <EMAIL@ADDRESS>\n"
+"Language-Team: German <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8-bit\n"
+
+
+#: game_modes.py:64
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+#: game_modes.py:78
+msgid "Score"
+msgstr "Punktzahl"
+
+#: game_modes.py:74
+msgid "calculating"
+msgstr "berechnen"
+
+#: game_modes.py:85
+msgid "Optimal Score"
+msgstr "optimale Punktzahl"
+
+#: multicut_game.py:50
+msgid "Tutorial"
+msgstr "Tutorial"
+
+#: multicut_game.py:62
+msgid "Quit"
+msgstr "Beenden"
