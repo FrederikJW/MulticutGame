@@ -42,16 +42,16 @@ class MulticutGame:
         }
 
     def init_buttons(self):
-        self.buttons.append(Button('Tutorial', 50, 190, 200, 40, 'blue', None))
-        self.buttons.append(Button('Level1', 50, 240, 200, 40, 'blue', partial(self.change_game_mode, 'level1')))
-        self.buttons.append(Button('Level2', 50, 290, 200, 40, 'blue', partial(self.change_game_mode, 'level2')))
-        self.buttons.append(Button('Level3', 50, 340, 200, 40, 'blue', partial(self.change_game_mode, 'level3')))
-        self.buttons.append(Button('Empty', 50, 390, 200, 40, 'blue', None))
-        self.buttons.append(Button('Empty', 50, 440, 200, 40, 'blue', None))
-        self.buttons.append(Button('Empty', 50, 490, 200, 40, 'blue', None))
-        self.buttons.append(Button('Empty', 50, 540, 200, 40, 'blue', None))
-        self.buttons.append(Button('Empty', 50, 590, 200, 40, 'blue', None))
-        self.buttons.append(Button('Quit', 50, 640, 200, 40, 'red', self.quit))
+        self.buttons.append(Button('Tutorial', (50, 190), (200, 40), 'blue', None))
+        self.buttons.append(Button('Level1', (50, 240), (200, 40), 'blue', partial(self.change_game_mode, 'level1')))
+        self.buttons.append(Button('Level2', (50, 290), (200, 40), 'blue', partial(self.change_game_mode, 'level2')))
+        self.buttons.append(Button('Level3', (50, 340), (200, 40), 'blue', partial(self.change_game_mode, 'level3')))
+        self.buttons.append(Button('Empty', (50, 390), (200, 40), 'blue', None))
+        self.buttons.append(Button('Empty', (50, 440), (200, 40), 'blue', None))
+        self.buttons.append(Button('Empty', (50, 490), (200, 40), 'blue', None))
+        self.buttons.append(Button('Empty', (50, 540), (200, 40), 'blue', None))
+        self.buttons.append(Button('Empty', (50, 590), (200, 40), 'blue', None))
+        self.buttons.append(Button('Quit', (50, 640), (200, 40), 'red', self.quit))
 
     def change_game_mode(self, game_mode):
         if self.current_game_mode == game_mode:

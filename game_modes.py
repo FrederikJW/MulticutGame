@@ -3,8 +3,10 @@ import abc
 import pygame
 
 import colors
+from button import Button
 from colors import *
 from graph import GraphFactory
+from utils import sub_pos
 
 
 # abstract game mode class
@@ -43,10 +45,14 @@ class ClassicGameMode(GameMode):
             self.graph = GraphFactory.generate_pentagram()
 
         self.move_vertex = None
-        self.offset = (self.graph.rec[0] + self.rec[0], self.graph.rec[1] + self.rec[1])
+        self.gamemode_offset = (self.rec[0], self.rec[1])
+        self.graph_offset = (self.graph.rec[0] + self.rec[0], self.graph.rec[1] + self.rec[1])
+
         self.font = pygame.font.SysFont('Ariel', 32)
         self.print_score()
         self.draw_necessary = True
+        self.buttons = []
+        self.buttons.append(Button('Reset', (100, 100), (200, 40), 'red', self.graph.reset, self.gamemode_offset))
 
     def switch_to(self):
         pass
@@ -73,24 +79,31 @@ class ClassicGameMode(GameMode):
         self.surface.fill(WHITE)
         self.graph.draw(highlight_group)
         self.print_score()
+        for button in self.buttons:
+            self.surface.blit(*button.objects())
         self.surface.blit(*self.graph.objects())
 
     def run(self, events):
         highlight_group = None
 
         mouse_pos = pygame.mouse.get_pos()
-        if not pygame.Rect(self.offset, self.graph.rec.size).collidepoint(mouse_pos):
+        if not pygame.Rect(self.graph_offset, self.graph.rec.size).collidepoint(mouse_pos):
             self.move_vertex = None
-        mouse_pos = (mouse_pos[0] - self.offset[0], mouse_pos[1] - self.offset[1])
+        graph_mouse_pos = sub_pos(mouse_pos, self.graph_offset)
+        gamemode_mouse_pos = sub_pos(mouse_pos, self.gamemode_offset)
 
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for vertex in self.graph.vertices.values():
-                    if vertex.rec.collidepoint(mouse_pos):
+                    if vertex.rec.collidepoint(graph_mouse_pos):
                         self.move_vertex = vertex
                         if len(self.move_vertex.group.vertices) > 1:
                             self.graph.move_vertex_to_group(self.move_vertex, None)
                         break
+                for button in self.buttons:
+                    if button.collides(gamemode_mouse_pos):
+                        button.action()
+                        self.draw_necessary = True
             elif event.type == pygame.MOUSEBUTTONUP:
                 if self.move_vertex is not None:
                     for group in self.graph.groups:
@@ -101,13 +114,17 @@ class ClassicGameMode(GameMode):
                 self.move_vertex = None
 
         if self.move_vertex is not None:
-            self.move_vertex.move(mouse_pos)
+            self.move_vertex.move(graph_mouse_pos)
             for group in self.graph.groups:
                 if group != self.move_vertex.group and group.rec.colliderect(self.move_vertex.group.rec):
                     highlight_group = group
                     break
 
             self.draw_necessary = True
+
+        for button in self.buttons:
+            if button.hover(button.collides(gamemode_mouse_pos)):
+                self.draw_necessary = True
 
         self.draw(highlight_group)
 

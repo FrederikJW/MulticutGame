@@ -80,6 +80,12 @@ class Graph:
         graph.add_edges_from([(e.vertex1.id, e.vertex2.id, {'weight': e.weight}) for e in self.edges])
         return graph
 
+    def reset(self):
+        self.groups = []
+        for vertex in self.vertices.values():
+            vertex.reset()
+            self.groups.append(vertex.group)
+
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
         self.groups.append(vertex.group)
@@ -204,6 +210,11 @@ class Vertex:
         self.radius = constants.GRAPH_VERTEX_RADIUS
         self.id = id
         self.edges = {}
+        self.group = Group(self.pos)
+        self.group.add_vertex(self)
+
+    def reset(self):
+        self.pos = self.init_pos
         self.group = Group(self.pos)
         self.group.add_vertex(self)
 
