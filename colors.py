@@ -6,6 +6,7 @@ DARK_BLUE = (0, 115, 153)
 GREEN = (76, 175, 80)  # 4CAF50
 DARK_GREEN = (62, 142, 65)
 WHITE = (255, 255, 255)
+GREY = (173, 173, 173)
 BLACK = (0, 0, 0)
 
 # antialiasing smooths the border between two colors, in the surface the color key is the background but on the screen

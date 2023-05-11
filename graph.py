@@ -251,4 +251,4 @@ class Edge:
         self.vertex2 = vertex2
 
     def draw(self, surface):
-        draw_thick_aaline(surface, self.vertex1.pos, self.vertex2.pos, RED if self.weight == 1 else GREEN, 2)
+        draw_thick_aaline(surface, self.vertex1.pos, self.vertex2.pos, RED if self.weight == 1 else GREEN, 3)

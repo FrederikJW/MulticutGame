@@ -24,10 +24,10 @@ def draw_thick_aaline(surface, pos1, pos2, color, width):
           centery + width2_cos_ang + length2_sin_ang)
     ur = (centerx - length2_cos_ang - width2_sin_ang,
           centery + width2_cos_ang - length2_sin_ang)
-    bl = (centerx + length2_cos_ang + width2_sin_ang,
-          centery - width2_cos_ang + length2_sin_ang)
-    br = (centerx - length2_cos_ang + width2_sin_ang,
+    bl = (centerx - length2_cos_ang + width2_sin_ang,
           centery - width2_cos_ang - length2_sin_ang)
+    br = (centerx + length2_cos_ang + width2_sin_ang,
+          centery - width2_cos_ang + length2_sin_ang)
 
     gfxdraw.aapolygon(surface, (ul, ur, bl, br), color)
     gfxdraw.filled_polygon(surface, (ul, ur, bl, br), color)

@@ -8,6 +8,7 @@ import colors
 import constants
 from button import Button
 from game_modes import ClassicGameMode
+from utils import sub_pos
 
 
 class GameMode(Enum):
@@ -42,16 +43,19 @@ class MulticutGame:
         }
 
     def init_buttons(self):
-        self.buttons.append(Button('Tutorial', (50, 190), (200, 40), 'blue', None))
-        self.buttons.append(Button('Level1', (50, 240), (200, 40), 'blue', partial(self.change_game_mode, 'level1')))
-        self.buttons.append(Button('Level2', (50, 290), (200, 40), 'blue', partial(self.change_game_mode, 'level2')))
-        self.buttons.append(Button('Level3', (50, 340), (200, 40), 'blue', partial(self.change_game_mode, 'level3')))
-        self.buttons.append(Button('Empty', (50, 390), (200, 40), 'blue', None))
-        self.buttons.append(Button('Empty', (50, 440), (200, 40), 'blue', None))
-        self.buttons.append(Button('Empty', (50, 490), (200, 40), 'blue', None))
-        self.buttons.append(Button('Empty', (50, 540), (200, 40), 'blue', None))
-        self.buttons.append(Button('Empty', (50, 590), (200, 40), 'blue', None))
-        self.buttons.append(Button('Quit', (50, 640), (200, 40), 'red', self.quit))
+        margin_left = constants.MARGIN
+        margin_right = constants.MARGIN
+        size = (constants.GAME_MODE_SCREEN_OFFSET[0] - (margin_right + margin_left), 40)
+        self.buttons.append(Button('Tutorial', (margin_left, 190), size, 'blue', None))
+        self.buttons.append(Button('Level1', (margin_left, 240), size, 'blue', partial(self.change_game_mode, 'level1')))
+        self.buttons.append(Button('Level2', (margin_left, 290), size, 'blue', partial(self.change_game_mode, 'level2')))
+        self.buttons.append(Button('Level3', (margin_left, 340), size, 'blue', partial(self.change_game_mode, 'level3')))
+        self.buttons.append(Button('Empty', (margin_left, 390), size, 'blue', None))
+        self.buttons.append(Button('Empty', (margin_left, 440), size, 'blue', None))
+        self.buttons.append(Button('Empty', (margin_left, 490), size, 'blue', None))
+        self.buttons.append(Button('Empty', (margin_left, 540), size, 'blue', None))
+        self.buttons.append(Button('Empty', (margin_left, 590), size, 'blue', None))
+        self.buttons.append(Button('Quit', (margin_left, 640), size, 'red', self.quit))
 
     def change_game_mode(self, game_mode):
         if self.current_game_mode == game_mode:
@@ -90,6 +94,10 @@ class MulticutGame:
                 game_mode = self.game_modes[self.current_game_mode]
                 game_mode.run(events)
                 self.screen.blit(*game_mode.objects())
+
+            # draw border
+            rec = pygame.Rect(sub_pos(constants.GAME_MODE_SCREEN_OFFSET, (2, 0)), (2, constants.SCREEN_SIZE[1]))
+            pygame.draw.rect(self.screen, colors.GREY, rec)
 
             pygame.display.update()
             self.clock.tick(constants.FRAMES_PER_SECOND)

@@ -3,6 +3,7 @@ import abc
 import pygame
 
 import colors
+import constants
 from button import Button
 from colors import *
 from graph import GraphFactory
@@ -47,27 +48,33 @@ class ClassicGameMode(GameMode):
         self.move_vertex = None
         self.gamemode_offset = (self.rec[0], self.rec[1])
         self.graph_offset = (self.graph.rec[0] + self.rec[0], self.graph.rec[1] + self.rec[1])
+        self.graph_rel_offset = sub_pos(self.graph_offset, self.gamemode_offset)
 
         self.font = pygame.font.SysFont('Ariel', 32)
         self.print_score()
         self.draw_necessary = True
+
+        # init buttons
         self.buttons = []
-        self.buttons.append(Button('Reset', (100, 100), (200, 40), 'red', self.graph.reset, self.gamemode_offset))
+        margin_top = constants.MARGIN
+        margin_right = constants.MARGIN
+        size = (200, 40)
+        pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
+        self.buttons.append(Button('Reset', (pos_x, margin_top), size, 'red', self.graph.reset, self.gamemode_offset))
 
     def switch_to(self):
         pass
 
     def print_score(self):
-        score_surface = self.font.render(f"score={self.graph.get_score()}", True, colors.BLACK)
-        score_rec = score_surface.get_rect()
+        score_surface = self.font.render(f"Score = {self.graph.get_score()}", True, colors.BLACK)
+        score_rec = score_surface.get_rect().move((constants.MARGIN, constants.MARGIN))
         optimal_score = self.graph.optimal_score
         if optimal_score is None:
             optimal_score = "calculating"
         else:
             optimal_score = str(int(optimal_score))
-        optimal_score_surface = self.font.render(f"optimal score={optimal_score}", True, colors.BLACK)
-        optimal_score_rec = optimal_score_surface.get_rect()
-        optimal_score_rec = optimal_score_rec.move(0, 20)
+        optimal_score_surface = self.font.render(f"Optimal Score = {optimal_score}", True, colors.BLACK)
+        optimal_score_rec = optimal_score_surface.get_rect().move((constants.MARGIN, constants.MARGIN + 50))
 
         self.surface.blit(score_surface, score_rec)
         self.surface.blit(optimal_score_surface, optimal_score_rec)
@@ -125,6 +132,10 @@ class ClassicGameMode(GameMode):
         for button in self.buttons:
             if button.hover(button.collides(gamemode_mouse_pos)):
                 self.draw_necessary = True
+
+        # draw border
+        rec = pygame.Rect(sub_pos(self.graph_rel_offset, (0, 2)), (constants.GAME_MODE_SCREEN_SIZE[0], 2))
+        pygame.draw.rect(self.surface, colors.GREY, rec)
 
         self.draw(highlight_group)
 
