@@ -57,10 +57,10 @@ def multicut_ilp(graph):
     model.solve()
 
     # Print the results for debugging
-    print("Status: ", pulp.LpStatus[model.status])
-    print("Optimal value: ", pulp.value(model.objective))
-    for e in graph.edges:
-        print("Edge ({},{}): {}".format(e[0], e[1], pulp.value(x[e])))
+    # print("Status: ", pulp.LpStatus[model.status])
+    # print("Optimal value: ", pulp.value(model.objective))
+    # for e in graph.edges:
+    #     print("Edge ({},{}): {}".format(e[0], e[1], pulp.value(x[e])))
 
     # Extract the optimal solution and return
     opt_cut = []
