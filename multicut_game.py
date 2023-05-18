@@ -20,10 +20,6 @@ de.install()
 _ = de.gettext
 
 
-class GameMode(Enum):
-    Classic = 1
-
-
 class MulticutGame:
     def __init__(self):
         pygame.init()
@@ -79,9 +75,6 @@ class MulticutGame:
         if game_mode is not None:
             self.game_modes[game_mode].switch_to()
         self.current_game_mode = game_mode
-
-    def classic(self):
-        pass
 
     def run(self):
         while True:
