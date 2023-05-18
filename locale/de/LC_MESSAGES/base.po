@@ -12,27 +12,34 @@ msgstr ""
 "Content-Type: text/plain; charset=ISO-8859-1\n"
 "Content-Transfer-Encoding: 8-bit\n"
 
-
-#: game_modes.py:64
+#: ./game_modes\classic_game_mode.py:49 .\game_modes\classic_game_mode.py:49
 msgid "Reset"
 msgstr "Zurücksetzen"
 
-#: game_modes.py:78
+#: ./game_modes\classic_game_mode.py:50 .\game_modes\classic_game_mode.py:50
+msgid "Regenerate"
+msgstr "neu erstellen"
+
+#: ./game_modes\classic_game_mode.py:67 .\game_modes\classic_game_mode.py:67
 msgid "Score"
 msgstr "Punktzahl"
 
-#: game_modes.py:74
+#: ./game_modes\classic_game_mode.py:71 .\game_modes\classic_game_mode.py:71
 msgid "calculating"
 msgstr "berechnen"
 
-#: game_modes.py:85
+#: ./game_modes\classic_game_mode.py:74 .\game_modes\classic_game_mode.py:74
 msgid "Optimal Score"
 msgstr "optimale Punktzahl"
 
-#: multicut_game.py:50
+#: .\multicut_game.py:54
 msgid "Tutorial"
 msgstr "Tutorial"
 
-#: multicut_game.py:62
+#: .\multicut_game.py:56 .\multicut_game.py:58 .\multicut_game.py:60
+msgid "Level"
+msgstr "Level"
+
+#: .\multicut_game.py:67
 msgid "Quit"
 msgstr "Beenden"

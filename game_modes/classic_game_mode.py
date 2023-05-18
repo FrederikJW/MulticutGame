@@ -1,4 +1,3 @@
-import abc
 import gettext
 import os
 
@@ -7,40 +6,15 @@ import pygame
 import colors
 import constants
 from button import Button
-from colors import *
 from graph import GraphFactory
 from utils import sub_pos
+from .game_mode import GameMode
 
-localedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'locale')
+localedir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'locale')
 de = gettext.translation('base', localedir, languages=['de'])
 de.install()
 
 _ = de.gettext
-
-
-# abstract game mode class
-class GameMode(metaclass=abc.ABCMeta):
-
-    def __init__(self, x, y, width, height):
-        self.surface = pygame.Surface((width, height))
-        self.surface.fill(COLOR_KEY)
-        self.surface.set_colorkey(COLOR_KEY)
-        self.rec = pygame.Rect(x, y, width, height)
-
-    def objects(self):
-        return self.surface, self.rec
-
-    @abc.abstractmethod
-    def switch_to(self):
-        pass
-
-    @abc.abstractmethod
-    def run(self, events):
-        pass
-
-    @abc.abstractmethod
-    def exit(self):
-        pass
 
 
 class ClassicGameMode(GameMode):
@@ -75,7 +49,7 @@ class ClassicGameMode(GameMode):
             Button(_('Reset'), (pos_x, margin_top), size, 'red', self.reset_graph, self.gamemode_offset),
             Button(_('Regenerate'), (pos_x, margin_top + 50), size, 'red', self.regenerate_graph, self.gamemode_offset)
         ])
-        
+
     def regenerate_graph(self):
         if self.graph_type == 'grid':
             self.graph = GraphFactory.generate_grid((self.graph_width, self.graph_height))
@@ -107,7 +81,7 @@ class ClassicGameMode(GameMode):
         if not self.draw_necessary:
             return
         self.draw_necessary = False
-        self.surface.fill(WHITE)
+        self.surface.fill(colors.WHITE)
         self.graph.draw(highlight_group)
         self.print_score()
         for button in self.buttons:

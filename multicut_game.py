@@ -1,7 +1,6 @@
 import gettext
 import os
 import sys
-from enum import Enum
 from functools import partial
 
 
@@ -54,11 +53,11 @@ class MulticutGame:
         size = (constants.GAME_MODE_SCREEN_OFFSET[0] - (margin_right + margin_left), 40)
         self.buttons.append(Button(_('Tutorial'), (margin_left, 190), size, 'blue', None))
         self.buttons.append(
-            Button(f"{_('Level')} 1", (margin_left, 240), size, 'blue', partial(self.change_game_mode, 'level1')))
+            Button(_('Level') + " 1", (margin_left, 240), size, 'blue', partial(self.change_game_mode, 'level1')))
         self.buttons.append(
-            Button(f"{_('Level')} 2", (margin_left, 290), size, 'blue', partial(self.change_game_mode, 'level2')))
+            Button(_('Level') + " 2", (margin_left, 290), size, 'blue', partial(self.change_game_mode, 'level2')))
         self.buttons.append(
-            Button(f"{_('Level')} 3", (margin_left, 340), size, 'blue', partial(self.change_game_mode, 'level3')))
+            Button(_('Level') + " 3", (margin_left, 340), size, 'blue', partial(self.change_game_mode, 'level3')))
         self.buttons.append(
             Button(f"Stresstest", (margin_left, 390), size, 'blue', partial(self.change_game_mode, 'stresstest')))
         self.buttons.append(Button('Empty', (margin_left, 440), size, 'blue', None))
