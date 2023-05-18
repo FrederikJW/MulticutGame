@@ -48,10 +48,14 @@ class ClassicGameMode(GameMode):
         super().__init__(x, y, width, height)
 
         self.graph = None
+        self.graph_type = graph_type
+        self.graph_width = graph_width
+        self.graph_height = graph_height
         if graph_type == 'grid':
-            self.graph = GraphFactory.generate_grid((graph_width, graph_height))
+            self.graph = GraphFactory.generate_grid((self.graph_width, self.graph_height))
         elif graph_type == 'pentagram':
             self.graph = GraphFactory.generate_pentagram()
+        self.score_drawn = False
 
         self.move_vertex = None
         self.gamemode_offset = (self.rec[0], self.rec[1])
@@ -59,7 +63,6 @@ class ClassicGameMode(GameMode):
         self.graph_rel_offset = sub_pos(self.graph_offset, self.gamemode_offset)
 
         self.font = pygame.font.SysFont('Ariel', 32)
-        self.print_score()
         self.draw_necessary = True
 
         # init buttons
@@ -68,8 +71,20 @@ class ClassicGameMode(GameMode):
         margin_right = constants.MARGIN
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.append(
-            Button(_('Reset'), (pos_x, margin_top), size, 'red', self.graph.reset, self.gamemode_offset))
+        self.buttons.extend([
+            Button(_('Reset'), (pos_x, margin_top), size, 'red', self.reset_graph, self.gamemode_offset),
+            Button(_('Regenerate'), (pos_x, margin_top + 50), size, 'red', self.regenerate_graph, self.gamemode_offset)
+        ])
+        
+    def regenerate_graph(self):
+        if self.graph_type == 'grid':
+            self.graph = GraphFactory.generate_grid((self.graph_width, self.graph_height))
+        elif self.graph_type == 'pentagram':
+            self.graph = GraphFactory.generate_pentagram()
+        self.score_drawn = False
+
+    def reset_graph(self):
+        self.graph.reset()
 
     def switch_to(self):
         pass
@@ -111,6 +126,9 @@ class ClassicGameMode(GameMode):
             self.move_vertex = None
         graph_mouse_pos = sub_pos(mouse_pos, self.graph_offset)
         gamemode_mouse_pos = sub_pos(mouse_pos, self.gamemode_offset)
+
+        if not self.score_drawn and self.graph.optimal_score is not None:
+            self.draw_necessary = True
 
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
