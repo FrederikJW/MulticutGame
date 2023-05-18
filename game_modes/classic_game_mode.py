@@ -18,8 +18,8 @@ _ = de.gettext
 
 
 class ClassicGameMode(GameMode):
-    def __init__(self, x, y, width, height, graph_type, graph_width=4, graph_height=4):
-        super().__init__(x, y, width, height)
+    def __init__(self, graph_type, graph_width=4, graph_height=4):
+        super().__init__()
 
         self.graph = None
         self.graph_type = graph_type
@@ -32,11 +32,8 @@ class ClassicGameMode(GameMode):
         self.score_drawn = False
 
         self.move_vertex = None
-        self.gamemode_offset = (self.rec[0], self.rec[1])
-        self.graph_offset = (self.graph.rec[0] + self.rec[0], self.graph.rec[1] + self.rec[1])
-        self.graph_rel_offset = sub_pos(self.graph_offset, self.gamemode_offset)
+        self.graph_rel_offset = sub_pos(constants.GRAPH_OFFSET, constants.GAME_MODE_SCREEN_OFFSET)
 
-        self.font = pygame.font.SysFont('Ariel', 32)
         self.draw_necessary = True
 
         # init buttons
@@ -46,8 +43,8 @@ class ClassicGameMode(GameMode):
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons.extend([
-            Button(_('Reset'), (pos_x, margin_top), size, 'red', self.reset_graph, self.gamemode_offset),
-            Button(_('Regenerate'), (pos_x, margin_top + 50), size, 'red', self.regenerate_graph, self.gamemode_offset)
+            Button(_('Reset'), (pos_x, margin_top), size, 'red', self.reset_graph, constants.GAME_MODE_HEAD_OFFSET),
+            Button(_('Regenerate'), (pos_x, margin_top + 50), size, 'red', self.regenerate_graph, constants.GAME_MODE_HEAD_OFFSET)
         ])
 
     def regenerate_graph(self):
@@ -74,32 +71,22 @@ class ClassicGameMode(GameMode):
         optimal_score_surface = self.font.render(_('Optimal Score') + f" = {optimal_score}", True, colors.BLACK)
         optimal_score_rec = optimal_score_surface.get_rect().move((constants.MARGIN, constants.MARGIN + 50))
 
-        self.surface.blit(score_surface, score_rec)
-        self.surface.blit(optimal_score_surface, optimal_score_rec)
+        self.head_surface.blit(score_surface, score_rec)
+        self.head_surface.blit(optimal_score_surface, optimal_score_rec)
 
-    def draw(self, highlight_group):
-        if not self.draw_necessary:
-            return
-        self.draw_necessary = False
-        self.surface.fill(colors.WHITE)
-        self.graph.draw(highlight_group)
+    def draw(self):
+        self.graph.draw(self.highlight_group)
         self.print_score()
-        for button in self.buttons:
-            self.surface.blit(*button.objects())
-
-        # draw border
-        rec = pygame.Rect(sub_pos(self.graph_rel_offset, (0, 2)), (constants.GAME_MODE_SCREEN_SIZE[0], 2))
-        pygame.draw.rect(self.surface, colors.GREY, rec)
-        self.surface.blit(*self.graph.objects())
+        self.body_surface.blit(*self.graph.objects())
 
     def run(self, events):
-        highlight_group = None
+        self.highlight_group = None
 
         mouse_pos = pygame.mouse.get_pos()
-        if not pygame.Rect(self.graph_offset, self.graph.rec.size).collidepoint(mouse_pos):
+        if not pygame.Rect(constants.GAME_MODE_BODY_OFFSET, self.graph.rec.size).collidepoint(mouse_pos):
             self.move_vertex = None
-        graph_mouse_pos = sub_pos(mouse_pos, self.graph_offset)
-        gamemode_mouse_pos = sub_pos(mouse_pos, self.gamemode_offset)
+        graph_mouse_pos = sub_pos(mouse_pos, constants.GAME_MODE_BODY_OFFSET)
+        gamemode_mouse_pos = sub_pos(mouse_pos, constants.GAME_MODE_SCREEN_OFFSET)
 
         if not self.score_drawn and self.graph.optimal_score is not None:
             self.draw_necessary = True
@@ -129,7 +116,7 @@ class ClassicGameMode(GameMode):
             self.move_vertex.move(graph_mouse_pos)
             for group in self.graph.groups:
                 if group != self.move_vertex.group and group.rec.colliderect(self.move_vertex.group.rec):
-                    highlight_group = group
+                    self.highlight_group = group
                     break
 
             self.draw_necessary = True
@@ -137,8 +124,6 @@ class ClassicGameMode(GameMode):
         for button in self.buttons:
             if button.hover(button.collides(gamemode_mouse_pos)):
                 self.draw_necessary = True
-
-        self.draw(highlight_group)
 
     def exit(self):
         pass

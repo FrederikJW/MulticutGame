@@ -16,7 +16,7 @@ from utils import draw_thick_aaline
 class GraphFactory:
     @staticmethod
     def generate_grid(size):
-        graph = Graph(*constants.GRAPH_SCREEN_RELATIVE_OFFSET, *constants.GRAPH_SCREEN_SIZE)
+        graph = Graph(*(0, 0), *constants.GAME_MODE_BODY_SIZE)
         i = 0
         for y in range(size[1]):
             for x in range(size[0]):
@@ -40,7 +40,7 @@ class GraphFactory:
 
     @staticmethod
     def generate_pentagram():
-        graph = Graph(*constants.GRAPH_SCREEN_RELATIVE_OFFSET, *constants.GRAPH_SCREEN_SIZE)
+        graph = Graph(*(0, 0), *constants.GAME_MODE_BODY_SIZE)
 
         angle_distance = 360/5
         radius = constants.GRAPH_PENTAGRAM_RADIUS

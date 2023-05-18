@@ -41,10 +41,10 @@ class MulticutGame:
         self.init_buttons()
 
         self.game_modes = {
-            'level1': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'grid', 4, 4),
-            'level2': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'grid', 5, 5),
-            'level3': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'pentagram'),
-            'stresstest': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'grid', 10, 10),
+            'level1': ClassicGameMode('grid', 4, 4),
+            'level2': ClassicGameMode('grid', 5, 5),
+            'level3': ClassicGameMode('pentagram'),
+            'stresstest': ClassicGameMode('grid', 10, 10),
         }
 
     def init_buttons(self):
@@ -79,6 +79,7 @@ class MulticutGame:
 
     def run(self):
         while True:
+            self.screen.fill(colors.WHITE)
             mouse_pos = pygame.mouse.get_pos()
             events = pygame.event.get()
             # Handle events
@@ -98,7 +99,7 @@ class MulticutGame:
             # run game mode
             if self.current_game_mode is not None:
                 game_mode = self.game_modes[self.current_game_mode]
-                game_mode.run(events)
+                game_mode.main(events)
                 self.screen.blit(*game_mode.objects())
 
             # draw border
