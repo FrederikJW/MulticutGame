@@ -45,6 +45,7 @@ class MulticutGame:
             'level1': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'grid', 4, 4),
             'level2': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'grid', 5, 5),
             'level3': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'pentagram'),
+            'stresstest': ClassicGameMode(*constants.GAME_MODE_SCREEN_OFFSET, *constants.SCREEN_SIZE, 'grid', 10, 10),
         }
 
     def init_buttons(self):
@@ -58,7 +59,8 @@ class MulticutGame:
             Button(f"{_('Level')} 2", (margin_left, 290), size, 'blue', partial(self.change_game_mode, 'level2')))
         self.buttons.append(
             Button(f"{_('Level')} 3", (margin_left, 340), size, 'blue', partial(self.change_game_mode, 'level3')))
-        self.buttons.append(Button('Empty', (margin_left, 390), size, 'blue', None))
+        self.buttons.append(
+            Button(f"Stresstest", (margin_left, 390), size, 'blue', partial(self.change_game_mode, 'stresstest')))
         self.buttons.append(Button('Empty', (margin_left, 440), size, 'blue', None))
         self.buttons.append(Button('Empty', (margin_left, 490), size, 'blue', None))
         self.buttons.append(Button('Empty', (margin_left, 540), size, 'blue', None))
