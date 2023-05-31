@@ -31,8 +31,9 @@ class ClassicGameMode(GameMode):
         margin_right = constants.MARGIN
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.append(Button(_('Regenerate'), (pos_x, margin_top + 50), size, 'red', self.regenerate_graph,
-                                   constants.GAME_MODE_HEAD_OFFSET))
+        self.buttons.update({'regenerate': Button(_('Regenerate'), (pos_x, margin_top + 50), size, 'red',
+                                                  self.regenerate_graph, constants.GAME_MODE_HEAD_OFFSET)})
+        self.headline = 'Try it!'
 
     def regenerate_graph(self):
         if self.graph_type == 'grid':
@@ -41,6 +42,9 @@ class ClassicGameMode(GameMode):
             self.graphs.update({0: GraphFactory.generate_pentagram()})
         self.active_graph = self.graphs[0]
         self.score_drawn = False
+
+    def graph_solved_event(self):
+        self.headline = 'Great you solved it!'
 
     def switch_to(self):
         pass

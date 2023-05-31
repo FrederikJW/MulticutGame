@@ -131,6 +131,9 @@ class Graph:
                 score += edge.weight
         return score
 
+    def is_solved(self):
+        return self.optimal_score is not None and self.optimal_score == self.get_score()
+
     def draw(self, highlight_group=None):
         self.surface.fill(COLOR_KEY)
 
@@ -251,4 +254,4 @@ class Edge:
         self.vertex2 = vertex2
 
     def draw(self, surface):
-        draw_thick_aaline(surface, self.vertex1.pos, self.vertex2.pos, RED if self.weight == 1 else GREEN, 3)
+        draw_thick_aaline(surface, self.vertex1.pos, self.vertex2.pos, GREEN if self.weight == 1 else RED, 3)
