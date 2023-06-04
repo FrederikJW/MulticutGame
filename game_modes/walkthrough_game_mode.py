@@ -1,5 +1,6 @@
 import gettext
 import os
+import abc
 
 import constants
 from button import Button
@@ -19,26 +20,100 @@ class WalkthroughGameMode(GameMode):
         self.game_mode_offset = (self.rec[0], self.rec[1])
 
         # init buttons
-        self.buttons = []
         margin_top = constants.MARGIN
         margin_right = constants.MARGIN
-        size = (200, 40)
+        size = (90, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.extend([
-            Button(_('Previous'), (pos_x, margin_top), size, 'red', self.reset_graph, self.gamemode_offset),
-            Button(_('Next'), (pos_x, margin_top + 50), size, 'red', self.regenerate_graph, self.gamemode_offset)
-        ])
+        self.buttons.update({
+            'previous': Button(_('<'), (pos_x - size[0] - 20, margin_top + 50), size, 'red',
+                               self.previous_step, self.game_mode_offset),
+            'next': Button(_('>'), (pos_x, margin_top + 50), size, 'green', self.next_step, self.game_mode_offset),
+        })
+
+        # init game steps
+        self.game_step_iterator = None
+        self.current_step = None
+
+    def init_game_steps(self, game_steps):
+        self.game_step_iterator = GameStepIterator(game_steps)
+
+    def next_step(self):
+        if self.current_step is not None:
+            self.current_step.exit()
+
+        self.current_step = self.game_step_iterator.next()
+        self.current_step.enter()
+
+    def previous_step(self):
+        if self.current_step is not None:
+            self.current_step.exit()
+
+        self.current_step = self.game_step_iterator.previous()
+        self.current_step.enter()
+
+    def graph_solved_event(self):
+        pass
 
     def switch_to(self):
         pass
 
     def draw(self):
-        self.graph.draw(highlight_group)
-        self.print_score()
-        self.surface.blit(*self.graph.objects())
-
-    def run(self, events):
         pass
 
+    def run(self):
+        self.current_step.run()
+
+    def exit(self):
+        pass
+
+
+class GameStepIterator:
+    def __init__(self, game_steps):
+        self.steps = game_steps
+        self.index = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if -1 >= self.index >= len(self.steps):
+            raise StopIteration
+        step = self.steps[self.index]
+        self.index += 1
+        return step
+
+    def next(self):
+        return next(self)
+
+    def previous(self):
+        self.index -= 1
+        if 0 >= self.index >= len(self.steps):
+            raise StopIteration
+
+        step = self.steps[self.index - 1]
+        return step
+
+
+class GameStep:
+    def __init__(self, game_mode):
+        self.game_mode = game_mode
+
+    @abc.abstractmethod
+    def enter(self):
+        pass
+
+    @abc.abstractmethod
+    def run(self):
+        pass
+
+    @abc.abstractmethod
+    def is_finished(self):
+        pass
+
+    @abc.abstractmethod
+    def finish(self):
+        pass
+
+    @abc.abstractmethod
     def exit(self):
         pass

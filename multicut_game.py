@@ -9,7 +9,7 @@ import pygame
 import colors
 import constants
 from button import Button
-from game_modes import ClassicGameMode
+from game_modes import ClassicGameMode, Tutorial
 from utils import sub_pos
 
 localedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'locale')
@@ -41,6 +41,7 @@ class MulticutGame:
         self.init_buttons()
 
         self.game_modes = {
+            'tutorial': Tutorial(),
             'level1': ClassicGameMode('grid', 4, 4),
             'level2': ClassicGameMode('grid', 5, 5),
             'level3': ClassicGameMode('pentagram'),
@@ -51,7 +52,8 @@ class MulticutGame:
         margin_left = constants.MARGIN
         margin_right = constants.MARGIN
         size = (constants.GAME_MODE_SCREEN_OFFSET[0] - (margin_right + margin_left), 40)
-        self.buttons.append(Button(_('Tutorial'), (margin_left, 190), size, 'blue', None))
+        self.buttons.append(
+            Button(_('Tutorial'), (margin_left, 190), size, 'blue', partial(self.change_game_mode, 'tutorial')))
         self.buttons.append(
             Button(_('Level') + " 1", (margin_left, 240), size, 'blue', partial(self.change_game_mode, 'level1')))
         self.buttons.append(

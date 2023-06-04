@@ -45,7 +45,9 @@ class GameMode(metaclass=abc.ABCMeta):
         self.highlight_group = None
 
         self.font = pygame.font.SysFont('Ariel', 32)
+        self.show_headline = True
         self.headline = ''
+        self.show_points = True
 
         self.draw_necessary = True
 
@@ -117,8 +119,10 @@ class GameMode(metaclass=abc.ABCMeta):
         if self.active_graph is not None:
             self.active_graph.draw(self.highlight_group)
             self.body_surface.blit(*self.active_graph.objects())
-        self.print_score()
-        self.print_headline()
+        if self.show_points:
+            self.print_score()
+        if self.show_headline:
+            self.print_headline()
 
         self.draw()
 
@@ -176,7 +180,7 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.mouse_down_event()
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.mouse_up_event()
-        if self.active_graph.is_solved():
+        if self.active_graph is not None and self.active_graph.is_solved():
             self.graph_solved_event()
 
         # move vertex
