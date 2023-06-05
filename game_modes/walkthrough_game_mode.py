@@ -63,6 +63,9 @@ class WalkthroughGameMode(GameMode):
     def run(self):
         self.current_step.run()
 
+        if self.current_step.is_finished():
+            self.current_step.finish()
+
     def exit(self):
         pass
 

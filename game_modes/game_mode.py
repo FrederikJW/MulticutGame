@@ -38,7 +38,6 @@ class GameMode(metaclass=abc.ABCMeta):
 
         self.rec = pygame.Rect(*constants.GAME_MODE_SCREEN_OFFSET, *constants.GAME_MODE_SCREEN_SIZE)
 
-        self.graphs = {}
         self.active_graph = None
         self.score_drawn = False
         self.move_vertex = None
@@ -63,14 +62,6 @@ class GameMode(metaclass=abc.ABCMeta):
     def reset_graph(self):
         if self.active_graph is not None:
             self.active_graph.reset()
-
-    def set_active_graph(self, graph_id):
-        if graph_id is None:
-            self.buttons['reset'].deactivate()
-            self.active_graph = None
-        else:
-            self.buttons['reset'].activate()
-            self.active_graph = self.graphs[graph_id]
 
     def print_headline(self):
         headline_surface = self.font.render(self.headline, True, colors.BLACK)
