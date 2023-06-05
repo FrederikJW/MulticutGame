@@ -30,9 +30,15 @@ class WalkthroughGameMode(GameMode):
             'next': Button(_('>'), (pos_x, margin_top + 50), size, 'green', self.next_step, self.game_mode_offset),
         })
 
+        # init graphs
+        self.graphs = {}
+
         # init game steps
         self.game_step_iterator = None
         self.current_step = None
+
+    def set_active_graph(self, graph_id):
+        self.active_graph = self.graphs.get(graph_id)
 
     def init_game_steps(self, game_steps):
         self.game_step_iterator = GameStepIterator(game_steps)
