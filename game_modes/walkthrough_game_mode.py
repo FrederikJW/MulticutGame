@@ -1,6 +1,6 @@
+import abc
 import gettext
 import os
-import abc
 
 import constants
 from button import Button

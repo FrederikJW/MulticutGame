@@ -9,7 +9,7 @@ import pygame
 import colors
 import constants
 from button import Button
-from game_modes import ClassicGameMode, Tutorial
+from game_modes import ClassicGameMode, Tutorial, ImageSegmentation
 from utils import sub_pos
 
 localedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'locale')
@@ -46,6 +46,7 @@ class MulticutGame:
             'level2': ClassicGameMode('grid', 5, 5),
             'level3': ClassicGameMode('pentagram'),
             'stresstest': ClassicGameMode('grid', 10, 10),
+            'imagesegmentation': ImageSegmentation(),
         }
 
     def init_buttons(self):
@@ -62,7 +63,8 @@ class MulticutGame:
             Button(_('Level') + " 3", (margin_left, 340), size, 'blue', partial(self.change_game_mode, 'level3')))
         self.buttons.append(
             Button(f"Stresstest", (margin_left, 390), size, 'blue', partial(self.change_game_mode, 'stresstest')))
-        self.buttons.append(Button('Empty', (margin_left, 440), size, 'blue', None))
+        self.buttons.append(
+            Button('Image Segmentation', (margin_left, 440), size, 'blue', partial(self.change_game_mode, 'imagesegmentation')))
         self.buttons.append(Button('Empty', (margin_left, 490), size, 'blue', None))
         self.buttons.append(Button('Empty', (margin_left, 540), size, 'blue', None))
         self.buttons.append(Button('Empty', (margin_left, 590), size, 'blue', None))
