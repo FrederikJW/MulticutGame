@@ -1,14 +1,81 @@
 import math
 
-import numpy
+import numpy as np
 from pygame import gfxdraw
+
+
+def calculate_polygon(points, radius):
+    center = np.zeros((2,))
+    for point in points:
+        center += np.array(point)
+    center /= len(points)
+
+    distances = []
+    for point in points:
+        distances.append((point, get_distance(center, point)))
+
+    start_point = max(distances, key=lambda x: x[1])[0]
+    polygon = [start_point]
+    current_angle = get_angle(center, start_point)
+    current_point = start_point
+
+    while True:
+        angles = []
+        for point in points:
+            if point == current_point:
+                continue
+            angle = get_angle(current_point, point)
+            angles.append((point, angle))
+
+        angles = map(lambda x: (x[0], x[1] % 360), angles)
+        current_point, current_angle = min(angles, key=lambda x: (x[1]-current_angle) % 360)
+        polygon.append(current_point)
+
+        if current_point == start_point:
+            break
+
+    rounded_polygon = []
+
+    for i in range(len(polygon) - 1):
+        current_point = np.array(polygon[i])
+        next_point = np.array(polygon[i+1])
+        centerx, centery = tuple((current_point + next_point) / 2)
+        length = math.hypot(*(current_point - next_point))
+        angle = math.atan2(current_point[1] - next_point[1], current_point[0] - next_point[0])
+        length2 = length / 2
+        sin_ang, cos_ang = math.sin(angle), math.cos(angle)
+
+        radius_sin_ang = radius * sin_ang
+        radius_cos_ang = radius * cos_ang
+        length2_sin_ang = length2 * sin_ang
+        length2_cos_ang = length2 * cos_ang
+
+        ul = (centerx + length2_cos_ang - radius_sin_ang,
+              centery + radius_cos_ang + length2_sin_ang)
+        ur = (centerx - length2_cos_ang - radius_sin_ang,
+              centery + radius_cos_ang - length2_sin_ang)
+
+        rounded_polygon.append(ul)
+        rounded_polygon.append(ur)
+
+    return tuple(rounded_polygon)
+
+
+def get_angle(point1, point2):
+    dx = point2[0] - point1[0]
+    dy = point2[1] - point1[1]
+    return np.degrees(np.arctan2(dy, dx))
+
+
+def get_distance(point1, point2):
+    return np.linalg.norm(np.array(point1) - np.array(point2))
 
 
 # draw an anti-aliased line with thickness more than 1px
 # reference: https://stackoverflow.com/a/30599392
 def draw_thick_aaline(surface, pos1, pos2, color, width):
-    pos1_array = numpy.array(pos1)
-    pos2_array = numpy.array(pos2)
+    pos1_array = np.array(pos1)
+    pos2_array = np.array(pos2)
     centerx, centery = tuple((pos1_array + pos2_array) / 2)
     length = math.hypot(*(pos2_array - pos1_array))
     angle = math.atan2(pos1_array[1] - pos2_array[1], pos1_array[0] - pos2_array[0])

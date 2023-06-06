@@ -10,7 +10,7 @@ from pygame import gfxdraw
 import constants
 from colors import *
 from solvers import multicut_ilp
-from utils import draw_thick_aaline
+from utils import draw_thick_aaline, calculate_polygon
 
 
 class GraphFactory:
@@ -228,10 +228,17 @@ class Group:
         size_increase = 0
         if highlight:
             size_increase = 5
-        radius = round(self.radius + size_increase)
-        gfxdraw.aacircle(surface, *self.pos, radius, DARK_BLUE)
-        gfxdraw.aacircle(surface, *self.pos, radius - 1, LIGHT_BLUE)
-        gfxdraw.filled_circle(surface, *self.pos, radius - 1, LIGHT_BLUE)
+        radius = round(constants.GRAPH_GROUP_RADIUS + size_increase)
+
+        for vertex in self.vertices.values():
+            gfxdraw.filled_circle(surface, *vertex.pos, radius, LIGHT_BLUE)
+            gfxdraw.aacircle(surface, *vertex.pos, radius, LIGHT_BLUE)
+
+        if len(self.vertices) > 1:
+            polygon = calculate_polygon([vertex.pos for vertex in self.vertices.values()], radius)
+
+            gfxdraw.filled_polygon(surface, polygon, LIGHT_BLUE)
+            gfxdraw.aapolygon(surface, polygon, LIGHT_BLUE)
 
 
 class Vertex:
