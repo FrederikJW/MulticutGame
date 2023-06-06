@@ -7,8 +7,8 @@ class Tutorial(WalkthroughGameMode):
         super().__init__()
 
         self.graphs.update({
-            0: GraphFactory.generate_grid((2, 2)),
-            1: GraphFactory.generate_grid((3, 3)),
+            0: GraphFactory.generate_grid((2, 2), "0110"),
+            1: GraphFactory.generate_grid((3, 3), "010110101100"),
         })
 
         # init steps

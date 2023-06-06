@@ -15,7 +15,12 @@ from utils import draw_thick_aaline
 
 class GraphFactory:
     @staticmethod
-    def generate_grid(size):
+    def generate_grid(size, seed=None):
+        # get weights
+        num_edges = 2 * size[0] * size[1] - size[0] - size[1]
+        weights = GraphFactory.get_weights(num_edges, seed)
+
+        # generate vertices
         graph = Graph(*(0, 0), *constants.GAME_MODE_BODY_SIZE)
         i = 0
         for y in range(size[1]):
@@ -24,13 +29,18 @@ class GraphFactory:
                     Vertex(i, (x * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[0],
                                y * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[1])))
                 i += 1
+
+        # generate edges
         i = 0
+        j = 0
         for y in range(size[1]):
             for x in range(size[0]):
                 if x != size[0] - 1:
-                    graph.add_edge(i, i + 1, random.choice([-1, 1]))
+                    graph.add_edge(i, i + 1, weights[j])
+                    j += 1
                 if y != size[1] - 1:
-                    graph.add_edge(i, i + size[0], random.choice([-1, 1]))
+                    graph.add_edge(i, i + size[0], weights[j])
+                    j += 1
                 i += 1
 
         # calculating optimal solution is done in a new thread so the game can continue
@@ -39,25 +49,43 @@ class GraphFactory:
         return graph
 
     @staticmethod
-    def generate_pentagram():
+    def generate_complete_graph(size, seed=None):
+        # get weights
+        num_edges = size * (size - 1) // 2
+        weights = GraphFactory.get_weights(num_edges, seed)
+
         graph = Graph(*(0, 0), *constants.GAME_MODE_BODY_SIZE)
 
-        angle_distance = 360/5
+        angle_distance = 360/size
         radius = constants.GRAPH_PENTAGRAM_RADIUS
         center = (constants.GRAPH_RELATIVE_OFFSET[0] + radius,
                   constants.GRAPH_RELATIVE_OFFSET[1] + radius)
 
-        for i in range(5):
+        k = 0
+        for i in range(size):
             x = radius * (math.sin(math.pi * 2 * (angle_distance * i) / 360)) + center[0]
             y = -(radius * (math.cos(math.pi * 2 * (angle_distance * i) / 360))) + center[1]
             graph.add_vertex(Vertex(i, (x, y)))
             for j in range(i):
-                graph.add_edge(i, j, random.choice([-1, 1]))
+                graph.add_edge(i, j, weights[k])
+                k += 1
 
         # calculating optimal solution is done in a new thread so the game can continue
         my_thread = threading.Thread(target=graph.calculate_solution)
         my_thread.start()
         return graph
+
+    @staticmethod
+    def get_weights(num_edges, seed=None):
+        weights = []
+        if seed is None:
+            for i in range(num_edges):
+                weights.append(random.choice([-1, 1]))
+        else:
+            for value in seed:
+                weights.append(int(value) if int(value) == 1 else -1)
+
+        return weights
 
 
 class Graph:
