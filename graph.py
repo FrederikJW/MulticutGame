@@ -10,7 +10,7 @@ from pygame import gfxdraw
 import constants
 from colors import *
 from solvers import multicut_ilp
-from utils import draw_thick_aaline, calculate_polygon
+from utils import draw_thick_aaline, calculate_polygon, get_distance
 
 
 class GraphFactory:
@@ -102,6 +102,15 @@ class Graph:
 
         self.draw()
 
+    def get_collided_vertex(self, vertex1):
+        distances = [(vertex2, get_distance(vertex1.pos, vertex2.pos))
+                     for vertex2 in self.vertices.values() if vertex1 != vertex2]
+        closest_vertex = min(distances, key=lambda x: x[1])
+        if closest_vertex[1] < 40:
+            return closest_vertex[0]
+        else:
+            return None
+
     def get_nx_graph(self):
         graph = nx.Graph()
         graph.add_nodes_from([v.id for v in self.vertices.values()])
@@ -142,7 +151,7 @@ class Graph:
             group_old.calculate_pos()
 
         if group is None:
-            group = Group(vertex.pos)
+            group = Group(vertex)
             self.groups.append(group)
 
         vertex.group = group
@@ -182,17 +191,11 @@ class Graph:
 
 
 class Group:
-    def __init__(self, pos):
+    def __init__(self, vertex):
         self.vertices = {}
-        self.pos = (round(pos[0]), round(pos[1]))
-        self.radius = constants.GRAPH_GROUP_RADIUS
+        self.init_pos = vertex.init_pos
+        self.pos = vertex.pos
         self.rel_pos = {}
-
-    @property
-    def rec(self):
-        rec = pygame.Rect((0, 0), (2 * self.radius, 2 * self.radius))
-        rec.center = self.pos
-        return rec
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
@@ -202,27 +205,18 @@ class Group:
 
     def calculate_pos(self):
         if len(self.vertices) == 1:
-            self.radius = constants.GRAPH_GROUP_RADIUS
-            list(self.vertices.values())[0].move(self.pos)
             return
 
         max_distance = 0
         self.rel_pos = {}
 
-        center = numpy.zeros((2,))
         for vertex in self.vertices.values():
-            center += numpy.array(vertex.init_pos)
-        center /= len(self.vertices)
-
-        for vertex in self.vertices.values():
-            rel_pos = (numpy.array(vertex.init_pos) - center) / 2
+            rel_pos = (numpy.array(vertex.init_pos) - self.init_pos) / 2
             distance = numpy.linalg.norm(rel_pos)
             max_distance = distance if distance > max_distance else max_distance
             self.rel_pos[vertex] = rel_pos
             total_pos = tuple(round(n) for n in (numpy.array(self.pos) + self.rel_pos[vertex]))
             vertex.move(total_pos)
-
-        self.radius = max_distance + constants.GRAPH_GROUP_OVERSIZE
 
     def draw(self, surface, highlight):
         size_increase = 0
@@ -248,12 +242,12 @@ class Vertex:
         self.radius = constants.GRAPH_VERTEX_RADIUS
         self.id = id
         self.edges = {}
-        self.group = Group(self.pos)
+        self.group = Group(self)
         self.group.add_vertex(self)
 
     def reset(self):
         self.pos = self.init_pos
-        self.group = Group(self.pos)
+        self.group = Group(self)
         self.group.add_vertex(self)
 
     @property

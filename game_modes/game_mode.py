@@ -7,7 +7,7 @@ import pygame
 import colors
 import constants
 from button import Button
-from utils import sub_pos
+from utils import sub_pos, get_distance
 
 localedir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'locale')
 de = gettext.translation('base', localedir, languages=['de'])
@@ -143,11 +143,11 @@ class GameMode(metaclass=abc.ABCMeta):
 
     def mouse_up_event(self):
         if self.move_vertex is not None and self.active_graph is not None:
-            for group in self.active_graph.groups:
-                if group != self.move_vertex.group and group.rec.colliderect(self.move_vertex.group.rec):
-                    self.active_graph.move_vertex_to_group(self.move_vertex, group)
-                    self.draw_necessary = True
-                    break
+            vertex_hit = self.active_graph.get_collided_vertex(self.move_vertex)
+            if vertex_hit is not None:
+                self.active_graph.move_vertex_to_group(self.move_vertex, vertex_hit.group)
+                self.draw_necessary = True
+
         self.move_vertex = None
 
     def main(self, events):
@@ -177,10 +177,9 @@ class GameMode(metaclass=abc.ABCMeta):
         # move vertex
         if self.move_vertex is not None and self.active_graph is not None:
             self.move_vertex.move(self.graph_mouse_pos)
-            for group in self.active_graph.groups:
-                if group != self.move_vertex.group and group.rec.colliderect(self.move_vertex.group.rec):
-                    self.highlight_group = group
-                    break
+            vertex_hit = self.active_graph.get_collided_vertex(self.move_vertex)
+            if vertex_hit is not None:
+                self.highlight_group = vertex_hit.group
 
             self.draw_necessary = True
 
