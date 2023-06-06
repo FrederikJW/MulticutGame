@@ -30,9 +30,12 @@ class Button:
         self.deactivated = False
         self.hidden = False
         self.label = label
+        self.is_icon = False
+        if label.__class__ != str:
+            self.is_icon = True
 
         self.font = pygame.font.SysFont('Ariel', 32)
-        self.text_surface = self.font.render(label, True, self.text_color)
+        self.text_surface = self.font.render(self.label if not self.is_icon else '', True, self.text_color)
         self.text_rec = self.text_surface.get_rect()
         self.text_rec.center = (size[0] / 2, size[1] / 2)
 
@@ -51,7 +54,7 @@ class Button:
 
         fill_color, border_color, text_color = self.get_colors()
 
-        self.text_surface = self.font.render(self.label, True, text_color)
+        self.text_surface = self.font.render(self.label if not self.is_icon else '', True, text_color)
         rec = self.surface.get_rect()
         rec.move(add_pos((rec.x, rec.y), self.offset))
         center = rec.center
@@ -60,7 +63,15 @@ class Button:
         rec.height = rec.height - 4
         rec.center = center
         pygame.draw.rect(self.surface, fill_color, rec, border_radius=8)
-        self.surface.blit(self.text_surface, self.text_rec)
+        if not self.is_icon:
+            self.surface.blit(self.text_surface, self.text_rec)
+        else:
+            rec = self.surface.get_rect()
+            center = rec.center
+            rec.size = (rec.width - 6, rec.height - 6)
+            rec.center = center
+            self.label = pygame.transform.scale(self.label, rec.size)
+            self.surface.blit(self.label, rec)
 
     def get_colors(self):
         if self.deactivated:

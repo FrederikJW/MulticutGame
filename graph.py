@@ -10,7 +10,7 @@ from pygame import gfxdraw
 import constants
 from colors import *
 from solvers import multicut_ilp
-from utils import draw_thick_aaline, calculate_polygon, get_distance
+from utils import draw_thick_aaline, calculate_polygon, get_distance, generate_distinct_colors
 
 
 class GraphFactory:
@@ -99,6 +99,8 @@ class Graph:
         self.rec = pygame.Rect(x, y, width, height)
         self.optimal_score = None
         self.optimal_edge_set = None
+        self.optimal_groups = None
+        self.vertices_color = None
 
         self.draw()
 
@@ -106,10 +108,29 @@ class Graph:
         distances = [(vertex2, get_distance(vertex1.pos, vertex2.pos))
                      for vertex2 in self.vertices.values() if vertex1 != vertex2]
         closest_vertex = min(distances, key=lambda x: x[1])
-        if closest_vertex[1] < 40:
+        if closest_vertex[1] < constants.GRAPH_GROUP_RADIUS * 2:
             return closest_vertex[0]
         else:
             return None
+
+    def get_group_by_cut(self, vertex, multicut):
+        vertices = [vertex]
+        i = 0
+        while i < len(vertices):
+            vertices.extend([v for v in self.get_connected_vertices(vertices[i], multicut) if v not in vertices])
+            i += 1
+        return vertices
+
+    def get_connected_vertices(self, vertex, multicut):
+        connected_vertices = []
+        for edge in self.edges:
+            if edge.tuple in multicut:
+                continue
+            if edge.vertex1 == vertex:
+                connected_vertices.append(edge.vertex2)
+            if edge.vertex2 == vertex:
+                connected_vertices.append(edge.vertex1)
+        return connected_vertices
 
     def get_nx_graph(self):
         graph = nx.Graph()
@@ -160,6 +181,25 @@ class Graph:
 
     def calculate_solution(self):
         self.optimal_edge_set, self.optimal_score = multicut_ilp(self.get_nx_graph())
+        optimal_groups = []
+
+        for vertex in self.vertices.values():
+            vertex_was_added = False
+            for vertex_list_group in optimal_groups:
+                if vertex in vertex_list_group:
+                    vertex_was_added = True
+                    break
+
+            if vertex_was_added:
+                continue
+            optimal_groups.append(self.get_group_by_cut(vertex, self.optimal_edge_set))
+
+        self.vertices_color = {}
+        colors = generate_distinct_colors(len(optimal_groups))
+        self.optimal_groups = zip(colors, optimal_groups)
+        for color, group in self.optimal_groups:
+            for vertex in group:
+                self.vertices_color[vertex.id] = color
 
     def get_score(self):
         score = 0
@@ -171,7 +211,7 @@ class Graph:
     def is_solved(self):
         return self.optimal_score is not None and self.optimal_score == self.get_score()
 
-    def draw(self, highlight_group=None):
+    def draw(self, highlight_group=None, show_solution=False):
         self.surface.fill(COLOR_KEY)
 
         # draw groups
@@ -184,7 +224,8 @@ class Graph:
 
         # draw vertices
         for vertex in self.vertices.values():
-            vertex.draw(self.surface)
+            color = self.vertices_color[vertex.id] if self.optimal_score is not None and show_solution else DARK_BLUE
+            vertex.draw(self.surface, color)
 
     def objects(self):
         return self.surface, self.rec
@@ -256,9 +297,9 @@ class Vertex:
         rec.center = self.pos
         return rec
 
-    def draw(self, surface):
-        gfxdraw.aacircle(surface, *self.pos, self.radius, DARK_BLUE)
-        gfxdraw.filled_circle(surface, *self.pos, self.radius, DARK_BLUE)
+    def draw(self, surface, color):
+        gfxdraw.aacircle(surface, *self.pos, self.radius, color)
+        gfxdraw.filled_circle(surface, *self.pos, self.radius, color)
 
     def add_edge(self, vertex_id, edge):
         self.edges[vertex_id] = edge
@@ -284,3 +325,7 @@ class Edge:
 
     def draw(self, surface):
         draw_thick_aaline(surface, self.vertex1.pos, self.vertex2.pos, GREEN if self.weight == 1 else RED, 3)
+
+    @property
+    def tuple(self):
+        return self.vertex1.id, self.vertex2.id

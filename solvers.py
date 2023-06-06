@@ -67,4 +67,5 @@ def multicut_ilp(graph):
     for (u, v) in graph.edges():
         if x[(u, v)].varValue == 1:
             opt_cut.append((u, v))
+            opt_cut.append((v, u))
     return opt_cut, pulp.value(model.objective)

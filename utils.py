@@ -3,6 +3,22 @@ import math
 import numpy as np
 from pygame import gfxdraw
 
+import colorsys
+
+
+def generate_distinct_colors(n):
+    colors = []
+    hue_values = [i / n for i in range(n)]
+    saturation = 0.5
+    lightness = 0.5
+
+    for hue in hue_values:
+        r, g, b = colorsys.hls_to_rgb(hue, lightness, saturation)
+        r, g, b = int(r * 255), int(g * 255), int(b * 255)
+        colors.append((r, g, b))
+
+    return colors
+
 
 def calculate_polygon(points, radius):
     center = np.zeros((2,))
@@ -28,7 +44,7 @@ def calculate_polygon(points, radius):
             angles.append((point, angle))
 
         angles = map(lambda x: (x[0], x[1] % 360), angles)
-        current_point, current_angle = min(angles, key=lambda x: (x[1]-current_angle) % 360)
+        current_point, current_angle = min(angles, key=lambda x: (x[1] - current_angle) % 360)
         polygon.append(current_point)
 
         if current_point == start_point:
@@ -38,7 +54,7 @@ def calculate_polygon(points, radius):
 
     for i in range(len(polygon) - 1):
         current_point = np.array(polygon[i])
-        next_point = np.array(polygon[i+1])
+        next_point = np.array(polygon[i + 1])
         centerx, centery = tuple((current_point + next_point) / 2)
         length = math.hypot(*(current_point - next_point))
         angle = math.atan2(current_point[1] - next_point[1], current_point[0] - next_point[0])

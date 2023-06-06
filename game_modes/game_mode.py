@@ -47,6 +47,7 @@ class GameMode(metaclass=abc.ABCMeta):
         self.show_headline = True
         self.headline = ''
         self.show_points = True
+        self.show_solution = False
 
         self.draw_necessary = True
 
@@ -56,12 +57,20 @@ class GameMode(metaclass=abc.ABCMeta):
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons = {}
-        self.buttons.update({'reset': Button(_('Reset'), (pos_x, margin_top), size, 'red', self.reset_graph,
-                                             constants.GAME_MODE_HEAD_OFFSET)})
+        self.buttons.update({
+            'reset': Button(_('Reset'), (pos_x, margin_top), size, 'red', self.reset_graph,
+                            constants.GAME_MODE_HEAD_OFFSET),
+            'solution': Button(pygame.image.load("assets/idea.png").convert_alpha(),
+                               (pos_x - 40 - 10, margin_top), (40, 40), 'blue', self.switch_solution,
+                               constants.GAME_MODE_HEAD_OFFSET)
+        })
 
     def reset_graph(self):
         if self.active_graph is not None:
             self.active_graph.reset()
+
+    def switch_solution(self):
+        self.show_solution = not self.show_solution
 
     def print_headline(self):
         headline_surface = self.font.render(self.headline, True, colors.BLACK)
@@ -108,7 +117,7 @@ class GameMode(metaclass=abc.ABCMeta):
             self.head_surface.blit(*button.objects())
 
         if self.active_graph is not None:
-            self.active_graph.draw(self.highlight_group)
+            self.active_graph.draw(self.highlight_group, self.show_solution)
             self.body_surface.blit(*self.active_graph.objects())
         if self.show_points:
             self.print_score()

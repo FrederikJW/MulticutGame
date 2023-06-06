@@ -29,10 +29,13 @@ class MulticutGame:
         self.text = self.font.render("0", True, colors.BLACK)
 
         # Set up screen
-        self.screen = pygame.display.set_mode(constants.SCREEN_SIZE, pygame.SCALED)
+        self.screen_size = constants.SCREEN_SIZE
+        self.screen = pygame.display.set_mode(self.screen_size, pygame.RESIZABLE)
         pygame.display.set_caption("Multicut Game")
 
         self.screen.fill(colors.WHITE)
+        self.surface = pygame.Surface(self.screen_size)
+        self.surface.fill(colors.WHITE)
         pygame.display.update()
 
         # Set up buttons
@@ -83,13 +86,15 @@ class MulticutGame:
 
     def run(self):
         while True:
-            self.screen.fill(colors.WHITE)
+            self.surface.fill(colors.WHITE)
             mouse_pos = pygame.mouse.get_pos()
             events = pygame.event.get()
             # Handle events
             for event in events:
                 if event.type == pygame.QUIT:
                     self.quit()
+                elif event.type == pygame.VIDEORESIZE:
+                    self.screen_size = event.dict['size']
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     for button in self.buttons:
                         if button.collides(mouse_pos):
@@ -98,18 +103,19 @@ class MulticutGame:
             # draw buttons
             for button in self.buttons:
                 button.hover(button.collides(mouse_pos))
-                self.screen.blit(*button.objects())
+                self.surface.blit(*button.objects())
 
             # run game mode
             if self.current_game_mode is not None:
                 game_mode = self.game_modes[self.current_game_mode]
                 game_mode.main(events)
-                self.screen.blit(*game_mode.objects())
+                self.surface.blit(*game_mode.objects())
 
             # draw border
             rec = pygame.Rect(sub_pos(constants.GAME_MODE_SCREEN_OFFSET, (2, 0)), (2, constants.SCREEN_SIZE[1]))
-            pygame.draw.rect(self.screen, colors.GREY, rec)
+            pygame.draw.rect(self.surface, colors.GREY, rec)
 
+            self.screen.blit(pygame.transform.scale(self.surface, self.screen_size), (0, 0))
             pygame.display.update()
             self.clock.tick(constants.FRAMES_PER_SECOND)
 
