@@ -4,6 +4,8 @@ import os
 
 import pygame
 
+from pygame import gfxdraw
+
 import colors
 import constants
 from button import Button
@@ -35,6 +37,10 @@ class GameMode(metaclass=abc.ABCMeta):
         self.mouse_pos = (0, 0)
         self.graph_mouse_pos = (0, 0)
         self.game_mode_mouse_pos = (0, 0)
+
+        self.is_cutting = False
+        self.cut_line = []
+        self.cut_edge_set = set()
 
         self.rec = pygame.Rect(*constants.GAME_MODE_SCREEN_OFFSET, *constants.GAME_MODE_SCREEN_SIZE)
 
@@ -124,6 +130,15 @@ class GameMode(metaclass=abc.ABCMeta):
         if self.show_headline:
             self.print_headline()
 
+        # draw cut line
+        if len(self.cut_line) != 0:
+            prev_point = None
+            for point in self.cut_line:
+                if prev_point is not None:
+                    gfxdraw.line(self.body_surface, *point, *prev_point, colors.BLACK)
+                prev_point = point
+            gfxdraw.line(self.body_surface, *prev_point, *self.graph_mouse_pos, colors.BLACK)
+
         self.draw()
 
         self.surface.blit(self.head_surface, constants.GAME_MODE_HEAD_RELATIVE_OFFSET)
@@ -150,6 +165,10 @@ class GameMode(metaclass=abc.ABCMeta):
                     self.active_graph.move_vertex_to_group(self.move_vertex, None)
                 break
 
+        if self.move_vertex is None and \
+                pygame.Rect(constants.GAME_MODE_BODY_OFFSET, self.body_surface.get_size()).collidepoint(self.mouse_pos):
+            self.is_cutting = True
+
     def mouse_up_event(self):
         if self.move_vertex is not None and self.active_graph is not None:
             vertex_hit = self.active_graph.get_collided_vertex(self.move_vertex)
@@ -158,6 +177,7 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.draw_necessary = True
 
         self.move_vertex = None
+        self.is_cutting = False
 
     def main(self, events):
         self.highlight_group = None
@@ -166,6 +186,7 @@ class GameMode(metaclass=abc.ABCMeta):
         self.mouse_pos = pygame.mouse.get_pos()
         if not pygame.Rect(constants.GAME_MODE_BODY_OFFSET, self.body_surface.get_size()).collidepoint(self.mouse_pos):
             self.move_vertex = None
+            self.is_cutting = False
         self.graph_mouse_pos = sub_pos(self.mouse_pos, constants.GAME_MODE_BODY_OFFSET)
         self.game_mode_mouse_pos = sub_pos(self.mouse_pos, constants.GAME_MODE_SCREEN_OFFSET)
 
@@ -196,6 +217,24 @@ class GameMode(metaclass=abc.ABCMeta):
         for button in self.buttons.values():
             if button.hover(button.collides(self.game_mode_mouse_pos)):
                 self.draw_necessary = True
+
+        # calculate cut line
+        if self.is_cutting:
+            if len(self.cut_line) == 0 \
+                    or get_distance(self.graph_mouse_pos, self.cut_line[-1]) > constants.GRAPH_CUT_LINE_POINT_DISTANCE:
+                if len(self.cut_line) != 0:
+                    self.cut_edge_set = self.cut_edge_set.union(
+                        self.active_graph.get_intersected_edges(self.cut_line[-1], self.graph_mouse_pos))
+                self.cut_line.append(self.graph_mouse_pos)
+            self.draw_necessary = True
+
+        # make the cut
+        if not self.is_cutting and len(self.cut_line) != 0:
+            self.cut_line = []
+            # TODO: cut here
+            print(self.cut_edge_set)
+            self.cut_edge_set = set()
+            self.draw_necessary = True
 
         self.run()
 

@@ -10,7 +10,8 @@ from pygame import gfxdraw
 import constants
 from colors import *
 from solvers import multicut_ilp
-from utils import draw_thick_aaline, calculate_polygon, get_distance, generate_distinct_colors
+from utils import draw_thick_aaline, draw_cut_thick_aaline, calculate_polygon, get_distance, generate_distinct_colors, \
+    line_line_intersect
 
 
 class GraphFactory:
@@ -56,7 +57,7 @@ class GraphFactory:
 
         graph = Graph(*(0, 0), *constants.GAME_MODE_BODY_SIZE)
 
-        angle_distance = 360/size
+        angle_distance = 360 / size
         radius = constants.GRAPH_PENTAGRAM_RADIUS
         center = (constants.GRAPH_RELATIVE_OFFSET[0] + radius,
                   constants.GRAPH_RELATIVE_OFFSET[1] + radius)
@@ -208,6 +209,13 @@ class Graph:
                 score += edge.weight
         return score
 
+    def get_intersected_edges(self, point1, point2):
+        intersected_edges = []
+        for edge in self.edges:
+            if edge.intersects(point1, point2):
+                intersected_edges.append(edge)
+        return intersected_edges
+
     def is_solved(self):
         return self.optimal_score is not None and self.optimal_score == self.get_score()
 
@@ -324,7 +332,13 @@ class Edge:
         self.vertex2 = vertex2
 
     def draw(self, surface):
-        draw_thick_aaline(surface, self.vertex1.pos, self.vertex2.pos, GREEN if self.weight == 1 else RED, 3)
+        if self.vertex1.group != self.vertex2.group:
+            draw_cut_thick_aaline(surface, self.vertex1.pos, self.vertex2.pos, GREEN if self.weight == 1 else RED, 3)
+        else:
+            draw_thick_aaline(surface, self.vertex1.pos, self.vertex2.pos, GREEN if self.weight == 1 else RED, 3)
+
+    def intersects(self, point1, point2):
+        return line_line_intersect(point1, point2, self.vertex1.pos, self.vertex2.pos) is not None
 
     @property
     def tuple(self):
