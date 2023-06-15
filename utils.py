@@ -22,6 +22,20 @@ def generate_distinct_colors(n):
     return colors
 
 
+def calculate_update_vector(center_new, center_old, total_nodes, relative_nodes):
+    base_movement = 10
+    total_nodes_factor = 10
+    relative_nodes = -math.tan((relative_nodes + 1) * math.pi / 2)
+    relative_nodes_factor = 0.05
+    normalized_vector = normalize_vector(sub_pos(center_new, center_old))
+    if center_new == center_old:
+        normalized_vector = (0, 0)
+    val_x = (total_nodes * total_nodes_factor + base_movement) * normalized_vector[0] * relative_nodes * relative_nodes_factor
+    val_y = (total_nodes * total_nodes_factor + base_movement) * normalized_vector[1] * relative_nodes * relative_nodes_factor
+
+    return val_x, val_y
+
+
 def calculate_polygon(points, radius):
     center = np.zeros((2,))
     for point in points:
@@ -165,6 +179,12 @@ def add_pos(pos1, pos2):
 
 def sub_pos(pos1, pos2):
     return pos1[0] - pos2[0], pos1[1] - pos2[1]
+
+
+def normalize_vector(vector):
+    magnitude = np.linalg.norm(np.array(vector))
+    normalized_vector = vector / magnitude
+    return tuple(normalized_vector)
 
 
 # found here: https://stackoverflow.com/a/63523520

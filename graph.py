@@ -8,6 +8,7 @@ import pygame
 from pygame import gfxdraw
 
 import constants
+import utils
 from colors import *
 from solvers import multicut_ilp
 from utils import draw_thick_aaline, draw_cut_thick_aaline, calculate_polygon, get_distance, generate_distinct_colors, \
@@ -165,14 +166,21 @@ class Graph:
         cut_edges.extend(edge_set)
         cut_edges_tuples = [edge.tuple for edge in cut_edges]
         # validate cut
+        if len(edge_set) == 0:
+            return False
         for edge in edge_set:
-            if edge.vertex1 in self.get_connected_vertices(edge.vertex2, cut_edges_tuples):
+            if edge.vertex1 in self.get_group_by_cut(edge.vertex2, cut_edges_tuples):
                 return False
 
         # make cut
         groups = self.get_groups_by_cut(cut_edges_tuples)
 
         relevant_vertices = set([vertex for edge in edge_set for vertex in (edge.vertex1, edge.vertex2)])
+        old_group_center_pos_by_vertex = dict([(vertex.id, vertex.group.get_center()) for vertex in relevant_vertices])
+        old_group_center_pos_by_group = {}
+        old_group_total_nodes_by_vertex = dict([(vertex.id, len(vertex.group.vertices)) for vertex in relevant_vertices])
+        old_group_total_nodes_by_group = {}
+
         for vertex in relevant_vertices:
             for group in groups:
                 if vertex not in group:
@@ -185,7 +193,17 @@ class Graph:
                 for group_vertex in group:
                     new_group.add_vertex(group_vertex)
                     group_vertex.group = new_group
+                old_group_center_pos_by_group[new_group] = old_group_center_pos_by_vertex[vertex.id]
+                old_group_total_nodes_by_group[new_group] = old_group_total_nodes_by_vertex[vertex.id]
                 groups.remove(group)
+
+        for group, old_center in old_group_center_pos_by_group.items():
+            old_total_nodes = old_group_total_nodes_by_group[group]
+            update_vector = utils.calculate_update_vector(
+                group.get_center(), old_center, old_total_nodes, len(group.vertices)/old_total_nodes)
+            group.pos = utils.add_pos(group.pos, update_vector)
+            for vertex in group.vertices.values():
+                vertex.move(utils.add_pos(vertex.pos, update_vector))
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
@@ -277,6 +295,11 @@ class Group:
         self.init_pos = vertex.init_pos
         self.pos = vertex.pos
         self.rel_pos = {}
+
+    def get_center(self):
+        center_x = sum([vertex.pos[0] for vertex in self.vertices.values()]) / len(self.vertices)
+        center_y = sum([vertex.pos[1] for vertex in self.vertices.values()]) / len(self.vertices)
+        return center_x, center_y
 
     def add_vertex(self, vertex):
         if vertex.id not in self.vertices.keys():
