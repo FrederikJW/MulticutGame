@@ -231,8 +231,7 @@ class GameMode(metaclass=abc.ABCMeta):
         # make the cut
         if not self.is_cutting and len(self.cut_line) != 0:
             self.cut_line = []
-            # TODO: cut here
-            print(self.cut_edge_set)
+            self.active_graph.cut(self.cut_edge_set)
             self.cut_edge_set = set()
             self.draw_necessary = True
 

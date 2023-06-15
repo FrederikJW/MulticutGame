@@ -114,6 +114,20 @@ class Graph:
         else:
             return None
 
+    def get_groups_by_cut(self, multicut):
+        groups = []
+        for vertex in self.vertices.values():
+            vertex_was_added = False
+            for vertex_list_group in groups:
+                if vertex in vertex_list_group:
+                    vertex_was_added = True
+                    break
+
+            if vertex_was_added:
+                continue
+            groups.append(self.get_group_by_cut(vertex, multicut))
+        return groups
+
     def get_group_by_cut(self, vertex, multicut):
         vertices = [vertex]
         i = 0
@@ -144,6 +158,34 @@ class Graph:
         for vertex in self.vertices.values():
             vertex.reset()
             self.groups.append(vertex.group)
+
+    def cut(self, edge_set):
+        edge_set = [e for e in edge_set if not e.is_cut()]
+        cut_edges = [e for e in self.edges if e.is_cut()]
+        cut_edges.extend(edge_set)
+        cut_edges_tuples = [edge.tuple for edge in cut_edges]
+        # validate cut
+        for edge in edge_set:
+            if edge.vertex1 in self.get_connected_vertices(edge.vertex2, cut_edges_tuples):
+                return False
+
+        # make cut
+        groups = self.get_groups_by_cut(cut_edges_tuples)
+
+        relevant_vertices = set([vertex for edge in edge_set for vertex in (edge.vertex1, edge.vertex2)])
+        for vertex in relevant_vertices:
+            for group in groups:
+                if vertex not in group:
+                    continue
+                old_group = vertex.group
+                new_group = Group(vertex)
+                self.groups.append(new_group)
+                if old_group in self.groups:
+                    self.groups.remove(old_group)
+                for group_vertex in group:
+                    new_group.add_vertex(group_vertex)
+                    group_vertex.group = new_group
+                groups.remove(group)
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
@@ -182,18 +224,8 @@ class Graph:
 
     def calculate_solution(self):
         self.optimal_edge_set, self.optimal_score = multicut_ilp(self.get_nx_graph())
-        optimal_groups = []
 
-        for vertex in self.vertices.values():
-            vertex_was_added = False
-            for vertex_list_group in optimal_groups:
-                if vertex in vertex_list_group:
-                    vertex_was_added = True
-                    break
-
-            if vertex_was_added:
-                continue
-            optimal_groups.append(self.get_group_by_cut(vertex, self.optimal_edge_set))
+        optimal_groups = self.get_groups_by_cut(self.optimal_edge_set)
 
         self.vertices_color = {}
         colors = generate_distinct_colors(len(optimal_groups))
@@ -247,7 +279,8 @@ class Group:
         self.rel_pos = {}
 
     def add_vertex(self, vertex):
-        self.vertices[vertex.id] = vertex
+        if vertex.id not in self.vertices.keys():
+            self.vertices[vertex.id] = vertex
 
     def remove_vertex(self, vertex):
         self.vertices.pop(vertex.id)
@@ -339,6 +372,9 @@ class Edge:
 
     def intersects(self, point1, point2):
         return line_line_intersect(point1, point2, self.vertex1.pos, self.vertex2.pos) is not None
+
+    def is_cut(self):
+        return self.vertex1.group != self.vertex2.group
 
     @property
     def tuple(self):
