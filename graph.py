@@ -160,6 +160,17 @@ class Graph:
             vertex.reset()
             self.groups.append(vertex.group)
 
+    def reset_to_one_group(self):
+        group = Group(list(self.vertices.values())[0])
+        self.groups = [group]
+        for vertex in self.vertices.values():
+            group.add_vertex(vertex)
+            vertex.group = group
+
+        group.init_pos = self.rec.center
+        group.pos = self.rec.center
+        group.calculate_pos()
+
     def cut(self, edge_set):
         edge_set = [e for e in edge_set if not e.is_cut()]
         cut_edges = [e for e in self.edges if e.is_cut()]

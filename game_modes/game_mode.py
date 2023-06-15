@@ -5,6 +5,7 @@ import os
 import pygame
 
 from pygame import gfxdraw
+from functools import partial
 
 import colors
 import constants
@@ -64,16 +65,21 @@ class GameMode(metaclass=abc.ABCMeta):
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons = {}
         self.buttons.update({
-            'reset': Button(_('Reset'), (pos_x, margin_top), size, 'red', self.reset_graph,
-                            constants.GAME_MODE_HEAD_OFFSET),
+            'reset': Button('Reset1', (pos_x, margin_top), (95, 40), 'red', self.reset_graph,
+                             constants.GAME_MODE_HEAD_OFFSET),
+            'reset2': Button('Reset2', (pos_x + 105, margin_top), (95, 40), 'red', partial(self.reset_graph, True),
+                             constants.GAME_MODE_HEAD_OFFSET),
             'solution': Button(pygame.image.load("assets/idea.png").convert_alpha(),
                                (pos_x - 40 - 10, margin_top), (40, 40), 'blue', self.switch_solution,
                                constants.GAME_MODE_HEAD_OFFSET)
         })
 
-    def reset_graph(self):
+    def reset_graph(self, one_group=False):
         if self.active_graph is not None:
-            self.active_graph.reset()
+            if one_group:
+                self.active_graph.reset_to_one_group()
+            else:
+                self.active_graph.reset()
 
     def switch_solution(self):
         self.show_solution = not self.show_solution
