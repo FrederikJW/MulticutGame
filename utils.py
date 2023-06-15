@@ -23,15 +23,15 @@ def generate_distinct_colors(n):
 
 
 def calculate_update_vector(center_new, center_old, total_nodes, relative_nodes):
-    base_movement = 10
-    total_nodes_factor = 10
+    base_movement = 2
+    total_nodes_factor = 2
     relative_nodes = -math.tan((relative_nodes + 1) * math.pi / 2)
-    relative_nodes_factor = 0.05
+    relative_nodes_factor = 2
     normalized_vector = normalize_vector(sub_pos(center_new, center_old))
     if center_new == center_old:
         normalized_vector = (0, 0)
-    val_x = (total_nodes * total_nodes_factor + base_movement) * normalized_vector[0] * relative_nodes * relative_nodes_factor
-    val_y = (total_nodes * total_nodes_factor + base_movement) * normalized_vector[1] * relative_nodes * relative_nodes_factor
+    val_x = (total_nodes * total_nodes_factor + base_movement + relative_nodes * relative_nodes_factor) * normalized_vector[0]
+    val_y = (total_nodes * total_nodes_factor + base_movement + relative_nodes * relative_nodes_factor) * normalized_vector[1]
 
     return val_x, val_y
 
