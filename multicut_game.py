@@ -48,7 +48,7 @@ class MulticutGame:
             'level1': ClassicGameMode('grid', 4, 4),
             'level2': ClassicGameMode('grid', 5, 5),
             'level3': ClassicGameMode('pentagram'),
-            'stresstest': ClassicGameMode('grid', 10, 10),
+            'stresstest': ClassicGameMode('grid', 10, 10, 0.5),
             'imagesegmentation': ImageSegmentation(),
         }
 

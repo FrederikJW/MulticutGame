@@ -17,19 +17,20 @@ from utils import draw_thick_aaline, draw_cut_thick_aaline, calculate_polygon, g
 
 class GraphFactory:
     @staticmethod
-    def generate_grid(size, seed=None):
+    def generate_grid(size_factor, size, seed=None):
         # get weights
         num_edges = 2 * size[0] * size[1] - size[0] - size[1]
         weights = GraphFactory.get_weights(num_edges, seed)
 
         # generate vertices
-        graph = Graph(*(0, 0), *constants.GAME_MODE_BODY_SIZE)
+        graph = Graph(size_factor, *(0, 0), *constants.GAME_MODE_BODY_SIZE)
         i = 0
         for y in range(size[1]):
             for x in range(size[0]):
                 graph.add_vertex(
-                    Vertex(i, (x * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[0],
-                               y * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[1])))
+                    Vertex(size_factor, i, (
+                    (x * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[0]) * size_factor,
+                    (y * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[1]) * size_factor)))
                 i += 1
 
         # generate edges
@@ -51,23 +52,23 @@ class GraphFactory:
         return graph
 
     @staticmethod
-    def generate_complete_graph(size, seed=None):
+    def generate_complete_graph(size_factor, size, seed=None):
         # get weights
         num_edges = size * (size - 1) // 2
         weights = GraphFactory.get_weights(num_edges, seed)
 
-        graph = Graph(*(0, 0), *constants.GAME_MODE_BODY_SIZE)
+        graph = Graph(size_factor, *(0, 0), *constants.GAME_MODE_BODY_SIZE)
 
         angle_distance = 360 / size
         radius = constants.GRAPH_PENTAGRAM_RADIUS
-        center = (constants.GRAPH_RELATIVE_OFFSET[0] + radius,
-                  constants.GRAPH_RELATIVE_OFFSET[1] + radius)
+        center = ((constants.GRAPH_RELATIVE_OFFSET[0] + radius) * size_factor,
+                  (constants.GRAPH_RELATIVE_OFFSET[1] + radius) * size_factor)
 
         k = 0
         for i in range(size):
             x = radius * (math.sin(math.pi * 2 * (angle_distance * i) / 360)) + center[0]
             y = -(radius * (math.cos(math.pi * 2 * (angle_distance * i) / 360))) + center[1]
-            graph.add_vertex(Vertex(i, (x, y)))
+            graph.add_vertex(Vertex(size_factor, i, (x, y)))
             for j in range(i):
                 graph.add_edge(i, j, weights[k])
                 k += 1
@@ -91,7 +92,8 @@ class GraphFactory:
 
 
 class Graph:
-    def __init__(self, x, y, width, height):
+    def __init__(self, size_factor, x, y, width, height):
+        self.size_factor = size_factor
         self.groups = []
         self.vertices = {}
         self.edges = []
@@ -110,7 +112,7 @@ class Graph:
         distances = [(vertex2, get_distance(vertex1.pos, vertex2.pos))
                      for vertex2 in self.vertices.values() if vertex1 != vertex2]
         closest_vertex = min(distances, key=lambda x: x[1])
-        if closest_vertex[1] < constants.GRAPH_GROUP_RADIUS * 2:
+        if closest_vertex[1] < constants.GRAPH_GROUP_RADIUS * 2 * self.size_factor:
             return closest_vertex[0]
         else:
             return None
@@ -161,7 +163,7 @@ class Graph:
             self.groups.append(vertex.group)
 
     def reset_to_one_group(self):
-        group = Group(list(self.vertices.values())[0])
+        group = Group(self.size_factor, list(self.vertices.values())[0])
         self.groups = [group]
         for vertex in self.vertices.values():
             group.add_vertex(vertex)
@@ -189,7 +191,8 @@ class Graph:
         relevant_vertices = set([vertex for edge in edge_set for vertex in (edge.vertex1, edge.vertex2)])
         old_group_center_pos_by_vertex = dict([(vertex.id, vertex.group.get_center()) for vertex in relevant_vertices])
         old_group_center_pos_by_group = {}
-        old_group_total_nodes_by_vertex = dict([(vertex.id, len(vertex.group.vertices)) for vertex in relevant_vertices])
+        old_group_total_nodes_by_vertex = dict(
+            [(vertex.id, len(vertex.group.vertices)) for vertex in relevant_vertices])
         old_group_total_nodes_by_group = {}
 
         for vertex in relevant_vertices:
@@ -197,7 +200,7 @@ class Graph:
                 if vertex not in group:
                     continue
                 old_group = vertex.group
-                new_group = Group(vertex)
+                new_group = Group(self.size_factor, vertex)
                 self.groups.append(new_group)
                 if old_group in self.groups:
                     self.groups.remove(old_group)
@@ -211,7 +214,7 @@ class Graph:
         for group, old_center in old_group_center_pos_by_group.items():
             old_total_nodes = old_group_total_nodes_by_group[group]
             update_vector = utils.calculate_update_vector(
-                group.get_center(), old_center, old_total_nodes, len(group.vertices)/old_total_nodes)
+                group.get_center(), old_center, old_total_nodes, len(group.vertices) / old_total_nodes)
             group.pos = utils.add_pos(group.pos, update_vector)
             for vertex in group.vertices.values():
                 vertex.move(utils.add_pos(vertex.pos, update_vector))
@@ -244,7 +247,7 @@ class Graph:
             group_old.calculate_pos()
 
         if group is None:
-            group = Group(vertex)
+            group = Group(self.size_factor, vertex)
             self.groups.append(group)
 
         vertex.group = group
@@ -301,7 +304,8 @@ class Graph:
 
 
 class Group:
-    def __init__(self, vertex):
+    def __init__(self, size_factor, vertex):
+        self.size_factor = size_factor
         self.vertices = {}
         self.init_pos = vertex.init_pos
         self.pos = vertex.pos
@@ -338,7 +342,7 @@ class Group:
         size_increase = 0
         if highlight:
             size_increase = 5
-        radius = round(constants.GRAPH_GROUP_RADIUS + size_increase)
+        radius = round((constants.GRAPH_GROUP_RADIUS + size_increase) * self.size_factor)
 
         for vertex in self.vertices.values():
             gfxdraw.filled_circle(surface, *vertex.pos, radius, LIGHT_BLUE)
@@ -352,18 +356,19 @@ class Group:
 
 
 class Vertex:
-    def __init__(self, id, pos):
+    def __init__(self, size_factor, id, pos):
+        self.size_factor = size_factor
         self.pos = (round(pos[0]), round(pos[1]))
         self.init_pos = self.pos
-        self.radius = constants.GRAPH_VERTEX_RADIUS
+        self.radius = round(constants.GRAPH_VERTEX_RADIUS * self.size_factor)
         self.id = id
         self.edges = {}
-        self.group = Group(self)
+        self.group = Group(self.size_factor, self)
         self.group.add_vertex(self)
 
     def reset(self):
         self.pos = self.init_pos
-        self.group = Group(self)
+        self.group = Group(self.size_factor, self)
         self.group.add_vertex(self)
 
     @property

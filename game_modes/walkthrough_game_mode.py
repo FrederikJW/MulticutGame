@@ -14,8 +14,8 @@ _ = de.gettext
 
 
 class WalkthroughGameMode(GameMode):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, size_factor=1):
+        super().__init__(size_factor)
 
         self.game_mode_offset = (self.rec[0], self.rec[1])
 

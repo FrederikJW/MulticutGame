@@ -3,11 +3,11 @@ from .walkthrough_game_mode import WalkthroughGameMode, GameStep
 
 
 class ImageSegmentation(WalkthroughGameMode):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, size_factor=1):
+        super().__init__(size_factor)
 
         self.graphs.update({
-            0: GraphFactory.generate_grid((5, 5)),
+            0: GraphFactory.generate_grid(self.size_factor, (5, 5)),
         })
 
         # init steps

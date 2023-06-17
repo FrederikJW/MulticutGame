@@ -14,16 +14,16 @@ _ = de.gettext
 
 
 class ClassicGameMode(GameMode):
-    def __init__(self, graph_type, graph_width=4, graph_height=4):
-        super().__init__()
+    def __init__(self, graph_type, graph_width=4, graph_height=4, size_factor=1):
+        super().__init__(size_factor)
 
         self.graph_type = graph_type
         self.graph_width = graph_width
         self.graph_height = graph_height
         if graph_type == 'grid':
-            self.active_graph = GraphFactory.generate_grid((self.graph_width, self.graph_height))
+            self.active_graph = GraphFactory.generate_grid(self.size_factor, (self.graph_width, self.graph_height))
         elif graph_type == 'pentagram':
-            self.active_graph = GraphFactory.generate_complete_graph(5)
+            self.active_graph = GraphFactory.generate_complete_graph(self.size_factor, 5)
 
         # init buttons
         margin_top = constants.MARGIN
@@ -36,9 +36,9 @@ class ClassicGameMode(GameMode):
 
     def regenerate_graph(self):
         if self.graph_type == 'grid':
-            self.active_graph = GraphFactory.generate_grid((self.graph_width, self.graph_height))
+            self.active_graph = GraphFactory.generate_grid(self.size_factor, (self.graph_width, self.graph_height))
         elif self.graph_type == 'pentagram':
-            self.active_graph = GraphFactory.generate_complete_graph(8)
+            self.active_graph = GraphFactory.generate_complete_graph(self.size_factor, 5)
         self.score_drawn = False
 
     def graph_solved_event(self):

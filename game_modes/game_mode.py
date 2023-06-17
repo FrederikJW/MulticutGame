@@ -22,7 +22,9 @@ _ = de.gettext
 # abstract game mode class
 class GameMode(metaclass=abc.ABCMeta):
 
-    def __init__(self):
+    def __init__(self, size_factor=1):
+        self.size_factor = size_factor
+
         self.head_surface = pygame.Surface(constants.GAME_MODE_HEAD_SIZE)
         self.head_surface.fill(colors.COLOR_KEY)
         self.head_surface.set_colorkey(colors.COLOR_KEY)
