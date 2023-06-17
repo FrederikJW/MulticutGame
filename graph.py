@@ -85,6 +85,7 @@ class GraphFactory:
             for i in range(num_edges):
                 weights.append(random.choice([-1, 1]))
         else:
+            seed = str(bin(seed))[3:]
             for value in seed:
                 weights.append(int(value) if int(value) == 1 else -1)
 
@@ -107,6 +108,14 @@ class Graph:
         self.vertices_color = None
 
         self.draw()
+
+    def print_cut_edges_as_seed(self):
+        seed = ''
+        for edge in self.edges:
+            seed += '0' if edge.is_cut() else '1'
+        seed = int('1' + seed, 2)
+        print(seed)
+        return seed
 
     def get_collided_vertex(self, vertex1):
         distances = [(vertex2, get_distance(vertex1.pos, vertex2.pos))
