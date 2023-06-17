@@ -1,14 +1,14 @@
 import abc
 import gettext
 import os
+from functools import partial
 
 import pygame
-
 from pygame import gfxdraw
-from functools import partial
 
 import colors
 import constants
+import utils
 from button import Button
 from utils import sub_pos, get_distance
 
@@ -67,9 +67,9 @@ class GameMode(metaclass=abc.ABCMeta):
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons = {}
         self.buttons.update({
-            'reset': Button('Reset1', (pos_x, margin_top), (95, 40), 'red', self.reset_graph,
-                             constants.GAME_MODE_HEAD_OFFSET),
-            'reset2': Button('Reset2', (pos_x + 105, margin_top), (95, 40), 'red', partial(self.reset_graph, True),
+            'reset': Button('Reset1', (pos_x, margin_top), (90, 40), 'red', self.reset_graph,
+                            constants.GAME_MODE_HEAD_OFFSET),
+            'reset2': Button('Reset2', (pos_x + 110, margin_top), (90, 40), 'red', partial(self.reset_graph, True),
                              constants.GAME_MODE_HEAD_OFFSET),
             'solution': Button(pygame.image.load("assets/idea.png").convert_alpha(),
                                (pos_x - 40 - 10, margin_top), (40, 40), 'blue', self.switch_solution,
@@ -187,11 +187,11 @@ class GameMode(metaclass=abc.ABCMeta):
         self.move_vertex = None
         self.is_cutting = False
 
-    def main(self, events):
+    def main(self, events, mouse_pos):
         self.highlight_group = None
 
         # calculate relative mouse positions
-        self.mouse_pos = pygame.mouse.get_pos()
+        self.mouse_pos = mouse_pos
         if not pygame.Rect(constants.GAME_MODE_BODY_OFFSET, self.body_surface.get_size()).collidepoint(self.mouse_pos):
             self.move_vertex = None
             self.is_cutting = False

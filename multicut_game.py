@@ -8,6 +8,7 @@ import pygame
 
 import colors
 import constants
+import utils
 from button import Button
 from game_modes import ClassicGameMode, Tutorial, ImageSegmentation
 from utils import sub_pos
@@ -87,7 +88,11 @@ class MulticutGame:
     def run(self):
         while True:
             self.surface.fill(colors.WHITE)
-            mouse_pos = pygame.mouse.get_pos()
+
+            screen_size_ratio = (constants.SCREEN_SIZE[0] / self.screen_size[0],
+                                 constants.SCREEN_SIZE[1] / self.screen_size[1])
+
+            mouse_pos = utils.round_pos(utils.mult_pos(pygame.mouse.get_pos(), screen_size_ratio))
             events = pygame.event.get()
             # Handle events
             for event in events:
@@ -108,7 +113,7 @@ class MulticutGame:
             # run game mode
             if self.current_game_mode is not None:
                 game_mode = self.game_modes[self.current_game_mode]
-                game_mode.main(events)
+                game_mode.main(events, mouse_pos)
                 self.surface.blit(*game_mode.objects())
 
             # draw border

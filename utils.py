@@ -181,6 +181,18 @@ def sub_pos(pos1, pos2):
     return pos1[0] - pos2[0], pos1[1] - pos2[1]
 
 
+def mult_pos(pos1, pos2):
+    return pos1[0] * pos2[0], pos1[1] * pos2[1]
+
+
+def div_pos(pos1, pos2):
+    return pos1[0] / pos2[0], pos1[1] / pos2[1]
+
+
+def round_pos(pos):
+    return round(pos[0]), round(pos[1])
+
+
 def normalize_vector(vector):
     magnitude = np.linalg.norm(np.array(vector))
     normalized_vector = vector / magnitude
