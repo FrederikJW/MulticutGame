@@ -215,6 +215,7 @@ class Graph:
             old_total_nodes = old_group_total_nodes_by_group[group]
             update_vector = utils.calculate_update_vector(
                 group.get_center(), old_center, old_total_nodes, len(group.vertices) / old_total_nodes)
+            update_vector = (update_vector[0] * self.size_factor, update_vector[1] * self.size_factor)
             group.pos = utils.add_pos(group.pos, update_vector)
             for vertex in group.vertices.values():
                 vertex.move(utils.add_pos(vertex.pos, update_vector))
