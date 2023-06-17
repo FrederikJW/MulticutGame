@@ -260,7 +260,7 @@ class Graph:
         optimal_groups = self.get_groups_by_cut(self.optimal_edge_set)
 
         self.vertices_color = {}
-        colors = generate_distinct_colors(len(optimal_groups))
+        colors = set(generate_distinct_colors(len(optimal_groups)))
         self.optimal_groups = zip(colors, optimal_groups)
         for color, group in self.optimal_groups:
             for vertex in group:
