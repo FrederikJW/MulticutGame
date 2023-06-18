@@ -226,8 +226,9 @@ class Graph:
                 group.get_center(), old_center, old_total_nodes, len(group.vertices) / old_total_nodes)
             update_vector = (update_vector[0] * self.size_factor, update_vector[1] * self.size_factor)
             group.pos = utils.add_pos(group.pos, update_vector)
-            for vertex in group.vertices.values():
-                vertex.move(utils.add_pos(vertex.pos, update_vector))
+            group.calculate_pos()
+            # for vertex in group.vertices.values():
+            #     vertex.move(utils.add_pos(vertex.pos, update_vector))
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
@@ -334,8 +335,13 @@ class Group:
         self.vertices.pop(vertex.id)
 
     def calculate_pos(self):
-        if len(self.vertices) == 1:
-            return
+        while not self._calculate_pos():
+            pass
+
+    def _calculate_pos(self):
+        # if len(self.vertices) == 1:
+        #     list(self.vertices.values())[0].move(self.pos)
+        #     return True
 
         max_distance = 0
         self.rel_pos = {}
@@ -345,8 +351,34 @@ class Group:
             distance = numpy.linalg.norm(rel_pos)
             max_distance = distance if distance > max_distance else max_distance
             self.rel_pos[vertex] = rel_pos
-            total_pos = tuple(round(n) for n in (numpy.array(self.pos) + self.rel_pos[vertex]))
+            total_pos = [round(n) for n in (numpy.array(self.pos) + self.rel_pos[vertex])]
+
+            vertex_out_of_bounds = False
+            left_bound = constants.GAME_MODE_BODY_MARGIN
+            right_bound = constants.GAME_MODE_BODY_SIZE[0] - constants.GAME_MODE_BODY_MARGIN
+            top_bound = constants.GAME_MODE_BODY_MARGIN
+            bottom_bound = constants.GAME_MODE_BODY_SIZE[1] - constants.GAME_MODE_BODY_MARGIN
+            pos_update = list(self.pos)
+            if left_bound > total_pos[0]:
+                pos_update[0] = self.pos[0] + left_bound - total_pos[0]
+                vertex_out_of_bounds = True
+            if right_bound < total_pos[0]:
+                pos_update[0] = self.pos[0] + right_bound - total_pos[0]
+                vertex_out_of_bounds = True
+            if top_bound > total_pos[1]:
+                pos_update[1] = self.pos[1] + top_bound - total_pos[1]
+                vertex_out_of_bounds = True
+            if bottom_bound < total_pos[1]:
+                pos_update[1] = self.pos[1] + bottom_bound - total_pos[1]
+                vertex_out_of_bounds = True
+
+            total_pos = tuple(total_pos)
+
             vertex.move(total_pos)
+            if vertex_out_of_bounds:
+                self.pos = tuple(pos_update)
+                return False
+        return True
 
     def draw(self, surface, highlight):
         size_increase = 0
