@@ -64,7 +64,7 @@ class WalkthroughGameMode(GameMode):
         pass
 
     def draw(self):
-        pass
+        self.current_step.draw()
 
     def run(self):
         self.current_step.run()
@@ -109,6 +109,10 @@ class GameStep:
 
     @abc.abstractmethod
     def enter(self):
+        pass
+
+    @abc.abstractmethod
+    def draw(self):
         pass
 
     @abc.abstractmethod
