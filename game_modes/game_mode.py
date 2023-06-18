@@ -214,7 +214,7 @@ class GameMode(metaclass=abc.ABCMeta):
 
         # move vertex
         if self.move_vertex is not None and self.active_graph is not None:
-            self.move_vertex.move(self.graph_mouse_pos)
+            self.move_vertex.group.move(self.graph_mouse_pos)
             vertex_hit = self.active_graph.get_collided_vertex(self.move_vertex)
             if vertex_hit is not None:
                 self.highlight_group = vertex_hit.group

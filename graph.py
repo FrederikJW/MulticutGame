@@ -225,10 +225,7 @@ class Graph:
             update_vector = utils.calculate_update_vector(
                 group.get_center(), old_center, old_total_nodes, len(group.vertices) / old_total_nodes)
             update_vector = (update_vector[0] * self.size_factor, update_vector[1] * self.size_factor)
-            group.pos = utils.add_pos(group.pos, update_vector)
-            group.calculate_pos()
-            # for vertex in group.vertices.values():
-            #     vertex.move(utils.add_pos(vertex.pos, update_vector))
+            group.move(utils.add_pos(group.pos, update_vector))
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
@@ -334,22 +331,19 @@ class Group:
     def remove_vertex(self, vertex):
         self.vertices.pop(vertex.id)
 
+    def move(self, pos):
+        self.pos = pos
+        self.calculate_pos()
+
     def calculate_pos(self):
         while not self._calculate_pos():
             pass
 
     def _calculate_pos(self):
-        # if len(self.vertices) == 1:
-        #     list(self.vertices.values())[0].move(self.pos)
-        #     return True
-
-        max_distance = 0
         self.rel_pos = {}
 
         for vertex in self.vertices.values():
             rel_pos = (numpy.array(vertex.init_pos) - self.init_pos) / 2
-            distance = numpy.linalg.norm(rel_pos)
-            max_distance = distance if distance > max_distance else max_distance
             self.rel_pos[vertex] = rel_pos
             total_pos = [round(n) for n in (numpy.array(self.pos) + self.rel_pos[vertex])]
 
