@@ -1,9 +1,12 @@
 import gettext
 import os
+
+import colors
 import constants
 
 import pygame
 
+import utils
 from button import Button
 from graph import GraphFactory
 from .walkthrough_game_mode import WalkthroughGameMode, GameStep
@@ -55,7 +58,31 @@ class SegmentationStep1(GameStep):
         super().__init__(game_mode)
 
         self.has_finished = False
-        self.image = pygame.transform.scale(pygame.image.load("assets/PixelArtTree.png").convert_alpha(), (500, 500))
+        self.image_offset = (200, 20)
+        image_size = (500, 500)
+        self.image_overlay_surface = pygame.Surface(image_size)
+        # self.image_overlay_surface.set_alpha(200)
+        self.image_overlay_surface.set_colorkey(colors.COLOR_KEY)
+        self.image = pygame.transform.scale(pygame.image.load("assets/PixelArtTree.png").convert_alpha(), image_size)
+        self.image_overlay_rects = []
+        rect_size = utils.round_pos(utils.div_pos(image_size, (10, 10)))
+        for y in range(0, image_size[1], rect_size[1]):
+            for x in range(0, image_size[0], rect_size[0]):
+                self.image_overlay_rects.append(pygame.Rect((x, y), rect_size))
+        self.image_overlay_colors = {}
+
+        self.edge_line_map = {}
+        for i in range(100):
+            if i % 10 != 0:
+                pos1 = (rect_size[0] * (i % 10), rect_size[1] * (i // 10))
+                pos2 = (rect_size[0] * (i % 10), rect_size[1] * ((i // 10) + 1))
+                self.edge_line_map[(i - 1, i)] = (pos1, pos2)
+                self.edge_line_map[(i, i - 1)] = (pos1, pos2)
+            if i // 10 != 0:
+                pos1 = (rect_size[0] * (i % 10), rect_size[1] * (i // 10))
+                pos2 = (rect_size[0] * ((i % 10) + 1), rect_size[1] * (i // 10))
+                self.edge_line_map[(i, i - 10)] = (pos1, pos2)
+                self.edge_line_map[(i - 10, i)] = (pos1, pos2)
 
     def enter(self):
         self.game_mode.headline = "Image Segmentation"
@@ -69,8 +96,21 @@ class SegmentationStep1(GameStep):
             self.game_mode.buttons['next'].activate()
 
     def draw(self):
+        if len(self.image_overlay_colors) != len(self.game_mode.active_graph.groups):
+            distinct_colors = utils.generate_distinct_colors(len(self.game_mode.active_graph.groups))
+            self.image_overlay_colors = dict(zip(self.game_mode.active_graph.groups, distinct_colors))
+
         if self.game_mode.show_image:
-            self.game_mode.body_surface.blit(self.image, (10, 10))
+            self.game_mode.body_surface.blit(self.image, self.image_offset)
+            # for i, rect in enumerate(self.image_overlay_rects):
+            #     color = self.image_overlay_colors[self.game_mode.active_graph.vertices[i].group]
+            #     pygame.draw.rect(self.image_overlay_surface, color, rect)
+            self.image_overlay_surface.fill(colors.COLOR_KEY)
+            for edge in self.game_mode.active_graph.edges:
+                if edge.is_cut():
+                    utils.draw_thick_aaline(self.image_overlay_surface, *self.edge_line_map[edge.tuple], colors.RED, 2)
+
+            self.game_mode.body_surface.blit(self.image_overlay_surface, self.image_offset)
 
     def run(self):
         pass
