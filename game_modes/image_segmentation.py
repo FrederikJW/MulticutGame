@@ -26,7 +26,7 @@ class ImageSegmentation(WalkthroughGameMode):
 
         seed = 3057040375451409601543510203563232304367163140911798783
         self.graphs.update({
-            0: GraphFactory.generate_grid(0.5, (10, 10), seed),
+            0: GraphFactory.generate_grid(0.7, (10, 10), seed),
         })
 
         # init buttons

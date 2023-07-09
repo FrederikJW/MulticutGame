@@ -5,6 +5,8 @@ from functools import partial
 
 import pygame
 from pygame import gfxdraw
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
 import colors
 import constants
@@ -50,7 +52,10 @@ class GameMode(metaclass=abc.ABCMeta):
         self.active_graph = None
         self.score_drawn = False
         self.move_vertex = None
+        self.move_group = None
+        self.group_mouse_distance = None
         self.highlight_group = None
+        self.move_group_mode = False
 
         self.font = pygame.font.SysFont('Ariel', 32)
         self.show_headline = True
@@ -73,7 +78,8 @@ class GameMode(metaclass=abc.ABCMeta):
                              constants.GAME_MODE_HEAD_OFFSET),
             'solution': Button(pygame.image.load("assets/idea.png").convert_alpha(),
                                (pos_x - 40 - 10, margin_top), (40, 40), 'blue', self.switch_solution,
-                               constants.GAME_MODE_HEAD_OFFSET)
+                               constants.GAME_MODE_HEAD_OFFSET),
+            'movegroup': Button('move group', (pos_x - 80 - 20, margin_top), (40, 40), 'blue', self.switch_move_mode)
         })
 
     def reset_graph(self, one_group=False):
@@ -85,6 +91,9 @@ class GameMode(metaclass=abc.ABCMeta):
 
     def switch_solution(self):
         self.show_solution = not self.show_solution
+
+    def switch_move_mode(self):
+        self.move_group_mode = not self.move_group_mode
 
     def print_headline(self):
         headline_surface = self.font.render(self.headline, True, colors.BLACK)
@@ -166,14 +175,26 @@ class GameMode(metaclass=abc.ABCMeta):
         if self.active_graph is None:
             return
 
-        for vertex in self.active_graph.vertices.values():
-            if vertex.rec.collidepoint(self.graph_mouse_pos):
-                self.move_vertex = vertex
-                if len(self.move_vertex.group.vertices) > 1:
-                    self.active_graph.move_vertex_to_group(self.move_vertex, None)
-                break
+        if self.move_group_mode:
+            for group in self.active_graph.groups:
+                if group.polygon is not None:
+                    polygon = Polygon(group.polygon)
+                    if polygon.contains(Point(*self.graph_mouse_pos)):
+                        self.move_group = group
+                        self.group_mouse_distance = utils.sub_pos(self.move_group.pos, self.graph_mouse_pos)
+                        break
+                else:
+                    group_vertex = list(group.vertices.values())[0]
+                    if utils.get_distance(group_vertex.pos, self.graph_mouse_pos) < constants.GRAPH_GROUP_RADIUS:
+        else:
+            for vertex in self.active_graph.vertices.values():
+                if vertex.rec.collidepoint(self.graph_mouse_pos):
+                    self.move_vertex = vertex
+                    if len(self.move_vertex.group.vertices) > 1:
+                        self.active_graph.move_vertex_to_group(self.move_vertex, None)
+                    break
 
-        if self.move_vertex is None and \
+        if self.move_vertex is None and self.move_group is None and \
                 pygame.Rect(constants.GAME_MODE_BODY_OFFSET, self.body_surface.get_size()).collidepoint(self.mouse_pos):
             self.is_cutting = True
 
@@ -184,7 +205,12 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.active_graph.move_vertex_to_group(self.move_vertex, vertex_hit.group)
                 self.draw_necessary = True
 
+        if self.move_group is not None and self.active_graph is not None:
+            # TODO: merge groups
+            pass
+
         self.move_vertex = None
+        self.move_group = None
         self.is_cutting = False
 
     def main(self, events, mouse_pos):
@@ -219,6 +245,11 @@ class GameMode(metaclass=abc.ABCMeta):
             if vertex_hit is not None:
                 self.highlight_group = vertex_hit.group
 
+            self.draw_necessary = True
+
+        # move group
+        if self.move_group is not None and self.active_graph is not None:
+            self.move_group.move(utils.add_pos(self.graph_mouse_pos, self.group_mouse_distance))
             self.draw_necessary = True
 
         # mark hover effect

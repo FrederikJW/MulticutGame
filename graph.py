@@ -318,6 +318,7 @@ class Group:
         self.init_pos = vertex.init_pos
         self.pos = vertex.pos
         self.rel_pos = {}
+        self.polygon = None
 
     def get_center(self):
         center_x = sum([vertex.pos[0] for vertex in self.vertices.values()]) / len(self.vertices)
@@ -385,10 +386,12 @@ class Group:
             gfxdraw.aacircle(surface, *vertex.pos, radius, LIGHT_BLUE)
 
         if len(self.vertices) > 1:
-            polygon = calculate_polygon([vertex.pos for vertex in self.vertices.values()], radius)
+            self.polygon = calculate_polygon([vertex.pos for vertex in self.vertices.values()], radius)
 
-            gfxdraw.filled_polygon(surface, polygon, LIGHT_BLUE)
-            gfxdraw.aapolygon(surface, polygon, LIGHT_BLUE)
+            gfxdraw.filled_polygon(surface, self.polygon, LIGHT_BLUE)
+            gfxdraw.aapolygon(surface, self.polygon, LIGHT_BLUE)
+        else:
+            self.polygon = None
 
 
 class Vertex:
