@@ -7,6 +7,9 @@ import numpy
 import pygame
 from pygame import gfxdraw
 
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
+
 import constants
 import utils
 from colors import *
@@ -118,13 +121,13 @@ class Graph:
         return seed
 
     def get_collided_vertex(self, vertex1):
-        distances = [(vertex2, get_distance(vertex1.pos, vertex2.pos))
-                     for vertex2 in self.vertices.values() if vertex1 != vertex2]
-        closest_vertex = min(distances, key=lambda x: x[1])
-        if closest_vertex[1] < constants.GRAPH_GROUP_RADIUS * 2 * self.size_factor:
-            return closest_vertex[0]
-        else:
-            return None
+        radius = constants.GRAPH_GROUP_RADIUS * 2 * self.size_factor
+        for vertex2 in self.vertices.values():
+            if vertex2 == vertex1:
+                continue
+            if utils.get_distance(vertex1.pos, vertex2.pos) < radius:
+                return vertex2
+        return None
 
     def get_groups_by_cut(self, multicut):
         groups = []
@@ -158,6 +161,20 @@ class Graph:
             if edge.vertex2 == vertex:
                 connected_vertices.append(edge.vertex1)
         return connected_vertices
+
+    def group_overlap(self, group1):
+        for group2 in self.groups:
+            if group1 == group2:
+                continue
+            for vertex1 in group1.vertices.values():
+                for vertex2 in group2.vertices.values():
+                    if utils.get_distance(vertex1.pos, vertex2.pos) < 2 * constants.GRAPH_GROUP_RADIUS:
+                        return group2
+        return None
+
+    def merge_groups(self, group1, group2):
+        for vertex in list(group1.vertices.values()):
+            self.move_vertex_to_group(vertex, group2)
 
     def get_nx_graph(self):
         graph = nx.Graph()
@@ -319,6 +336,7 @@ class Group:
         self.pos = vertex.pos
         self.rel_pos = {}
         self.polygon = None
+        self.radius = round(constants.GRAPH_GROUP_RADIUS * self.size_factor)
 
     def get_center(self):
         center_x = sum([vertex.pos[0] for vertex in self.vertices.values()]) / len(self.vertices)
@@ -331,6 +349,17 @@ class Group:
 
     def remove_vertex(self, vertex):
         self.vertices.pop(vertex.id)
+
+    def is_hit(self, pos):
+        if self.polygon is not None:
+            polygon = Polygon(self.polygon)
+            if polygon.contains(Point(*pos)):
+                return True
+
+        for vertex in self.vertices.values():
+            if vertex.is_hit(pos, True):
+                return True
+        return False
 
     def move(self, pos):
         self.pos = pos
@@ -379,7 +408,7 @@ class Group:
         size_increase = 0
         if highlight:
             size_increase = 5
-        radius = round((constants.GRAPH_GROUP_RADIUS + size_increase) * self.size_factor)
+        radius = round(self.radius + (size_increase * self.size_factor))
 
         for vertex in self.vertices.values():
             gfxdraw.filled_circle(surface, *vertex.pos, radius, LIGHT_BLUE)
@@ -415,6 +444,12 @@ class Vertex:
         rec = pygame.Rect((0, 0), (2 * self.radius, 2 * self.radius))
         rec.center = self.pos
         return rec
+
+    def is_hit(self, pos, use_group_radius=False):
+        radius = self.radius
+        if use_group_radius:
+            radius = self.group.radius
+        return utils.get_distance(self.pos, pos) < radius
 
     def draw(self, surface, color):
         gfxdraw.aacircle(surface, *self.pos, self.radius, color)

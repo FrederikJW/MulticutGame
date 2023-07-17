@@ -177,18 +177,13 @@ class GameMode(metaclass=abc.ABCMeta):
 
         if self.move_group_mode:
             for group in self.active_graph.groups:
-                if group.polygon is not None:
-                    polygon = Polygon(group.polygon)
-                    if polygon.contains(Point(*self.graph_mouse_pos)):
-                        self.move_group = group
-                        self.group_mouse_distance = utils.sub_pos(self.move_group.pos, self.graph_mouse_pos)
-                        break
-                else:
-                    group_vertex = list(group.vertices.values())[0]
-                    if utils.get_distance(group_vertex.pos, self.graph_mouse_pos) < constants.GRAPH_GROUP_RADIUS:
+                if group.is_hit(self.graph_mouse_pos):
+                    self.move_group = group
+                    self.group_mouse_distance = utils.sub_pos(self.move_group.pos, self.graph_mouse_pos)
+                    break
         else:
             for vertex in self.active_graph.vertices.values():
-                if vertex.rec.collidepoint(self.graph_mouse_pos):
+                if vertex.is_hit(self.graph_mouse_pos):
                     self.move_vertex = vertex
                     if len(self.move_vertex.group.vertices) > 1:
                         self.active_graph.move_vertex_to_group(self.move_vertex, None)
@@ -206,8 +201,10 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.draw_necessary = True
 
         if self.move_group is not None and self.active_graph is not None:
-            # TODO: merge groups
-            pass
+            overlapped_group = self.active_graph.group_overlap(self.move_group)
+            if overlapped_group is not None:
+                self.active_graph.merge_groups(self.move_group, overlapped_group)
+                self.draw_necessary = True
 
         self.move_vertex = None
         self.move_group = None
