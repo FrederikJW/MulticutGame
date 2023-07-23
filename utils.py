@@ -1,9 +1,9 @@
+import colorsys
 import math
 
 import numpy as np
+import pygame
 from pygame import gfxdraw
-
-import colorsys
 
 import constants
 
@@ -30,8 +30,10 @@ def calculate_update_vector(center_new, center_old, total_nodes, relative_nodes)
     normalized_vector = normalize_vector(sub_pos(center_new, center_old))
     if center_new == center_old:
         normalized_vector = (0, 0)
-    val_x = (total_nodes * total_nodes_factor + base_movement + relative_nodes * relative_nodes_factor) * normalized_vector[0]
-    val_y = (total_nodes * total_nodes_factor + base_movement + relative_nodes * relative_nodes_factor) * normalized_vector[1]
+    val_x = (total_nodes * total_nodes_factor + base_movement + relative_nodes * relative_nodes_factor) * \
+            normalized_vector[0]
+    val_y = (total_nodes * total_nodes_factor + base_movement + relative_nodes * relative_nodes_factor) * \
+            normalized_vector[1]
 
     return val_x, val_y
 
@@ -93,6 +95,12 @@ def calculate_polygon(points, radius):
     return tuple(rounded_polygon)
 
 
+def ndarray_to_surface(ndarray):
+    height, width, _ = ndarray.shape
+    surface = pygame.surfarray.make_surface(ndarray.swapaxes(0, 1))
+    return surface
+
+
 def get_angle(point1, point2):
     dx = point2[0] - point1[0]
     dy = point2[1] - point1[1]
@@ -150,22 +158,22 @@ def draw_cut_thick_aaline(surface, pos1, pos2, color, width):
     gap_length2_cos_ang = gap_length2 * cos_ang
 
     ul1 = (centerx + length2_cos_ang - width2_sin_ang,
-          centery + width2_cos_ang + length2_sin_ang)
+           centery + width2_cos_ang + length2_sin_ang)
     ur1 = (centerx - length2_cos_ang - width2_sin_ang,
-          centery + width2_cos_ang - length2_sin_ang)
+           centery + width2_cos_ang - length2_sin_ang)
     bl1 = (centerx + length2_cos_ang + width2_sin_ang,
-          centery - width2_cos_ang + length2_sin_ang)
+           centery - width2_cos_ang + length2_sin_ang)
     br1 = (centerx - length2_cos_ang + width2_sin_ang,
-          centery - width2_cos_ang - length2_sin_ang)
+           centery - width2_cos_ang - length2_sin_ang)
 
     ul2 = (centerx + gap_length2_cos_ang - width2_sin_ang,
-          centery + width2_cos_ang + gap_length2_sin_ang)
+           centery + width2_cos_ang + gap_length2_sin_ang)
     ur2 = (centerx - gap_length2_cos_ang - width2_sin_ang,
-          centery + width2_cos_ang - gap_length2_sin_ang)
+           centery + width2_cos_ang - gap_length2_sin_ang)
     bl2 = (centerx + gap_length2_cos_ang + width2_sin_ang,
-          centery - width2_cos_ang + gap_length2_sin_ang)
+           centery - width2_cos_ang + gap_length2_sin_ang)
     br2 = (centerx - gap_length2_cos_ang + width2_sin_ang,
-          centery - width2_cos_ang - gap_length2_sin_ang)
+           centery - width2_cos_ang - gap_length2_sin_ang)
 
     gfxdraw.aapolygon(surface, (ur1, br1, br2, ur2), color)
     gfxdraw.filled_polygon(surface, (ur1, br1, br2, ur2), color)
@@ -201,12 +209,11 @@ def normalize_vector(vector):
 
 # found here: https://stackoverflow.com/a/63523520
 def line_line_intersect(P0, P1, Q0, Q1):
-    d = (P1[0]-P0[0]) * (Q1[1]-Q0[1]) + (P1[1]-P0[1]) * (Q0[0]-Q1[0])
+    d = (P1[0] - P0[0]) * (Q1[1] - Q0[1]) + (P1[1] - P0[1]) * (Q0[0] - Q1[0])
     if d == 0:
         return None
-    t = ((Q0[0]-P0[0]) * (Q1[1]-Q0[1]) + (Q0[1]-P0[1]) * (Q0[0]-Q1[0])) / d
-    u = ((Q0[0]-P0[0]) * (P1[1]-P0[1]) + (Q0[1]-P0[1]) * (P0[0]-P1[0])) / d
+    t = ((Q0[0] - P0[0]) * (Q1[1] - Q0[1]) + (Q0[1] - P0[1]) * (Q0[0] - Q1[0])) / d
+    u = ((Q0[0] - P0[0]) * (P1[1] - P0[1]) + (Q0[1] - P0[1]) * (P0[0] - P1[0])) / d
     if 0 <= t <= 1 and 0 <= u <= 1:
-        return round(P1[0] * t + P0[0] * (1-t)), round(P1[1] * t + P0[1] * (1-t))
+        return round(P1[0] * t + P0[0] * (1 - t)), round(P1[1] * t + P0[1] * (1 - t))
     return None
-

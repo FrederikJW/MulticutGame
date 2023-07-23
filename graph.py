@@ -94,6 +94,19 @@ class GraphFactory:
 
         return weights
 
+    @staticmethod
+    def generate_graph_from(size_factor, vertices, edges):
+        graph = Graph(size_factor, *(0, 0), *constants.GAME_MODE_BODY_SIZE)
+        for vertex_id, pos in vertices.items():
+            graph.add_vertex(Vertex(size_factor, vertex_id, pos))
+        for vertex_tuple, weight in edges.items():
+            graph.add_edge(*vertex_tuple, weight)
+
+        # calculating optimal solution is done in a new thread so the game can continue
+        my_thread = threading.Thread(target=graph.calculate_solution)
+        my_thread.start()
+        return graph
+
 
 class Graph:
     def __init__(self, size_factor, x, y, width, height):
@@ -259,9 +272,7 @@ class Graph:
         self.draw()
 
     def get_vertex(self, vertex_id):
-        if vertex_id in self.vertices.keys():
-            return self.vertices[vertex_id]
-        return None
+        return self.vertices.get(vertex_id)
 
     def move_vertex_to_group(self, vertex, group):
         group_old = vertex.group

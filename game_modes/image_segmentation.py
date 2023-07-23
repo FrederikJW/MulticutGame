@@ -1,9 +1,12 @@
 import gettext
 import os
 
+import numpy
+
 import colors
 import constants
 
+import pickle
 import pygame
 
 import utils
@@ -42,12 +45,13 @@ class ImageSegmentation(WalkthroughGameMode):
         # init steps
         self.init_game_steps([
             SegmentationStep1(self),
+            SegmentationStep2(self),
         ])
 
         # start with first step
         self.next_step()
 
-        self.buttons['reset'].hide()
+        # self.buttons['reset'].hide()
 
     def switch_show_image(self):
         self.show_image = not self.show_image
@@ -89,7 +93,8 @@ class SegmentationStep1(GameStep):
         self.game_mode.set_active_graph(0)
         self.game_mode.active_graph.reset_to_one_group()
         self.game_mode.buttons['previous'].deactivate()
-        self.game_mode.buttons['next'].deactivate()
+        # TODO: just for testing. change this to deactivate
+        self.game_mode.buttons['next'].activate()
         self.game_mode.show_points = False
 
         if self.has_finished:
@@ -111,6 +116,96 @@ class SegmentationStep1(GameStep):
                     utils.draw_thick_aaline(self.image_overlay_surface, *self.edge_line_map[edge.tuple], colors.RED, 2)
 
             self.game_mode.body_surface.blit(self.image_overlay_surface, self.image_offset)
+
+    def run(self):
+        pass
+
+    def is_finished(self):
+        is_finished = self.game_mode.active_graph.is_solved()
+        if is_finished:
+            self.has_finished = True
+        return is_finished
+
+    def finish(self):
+        self.game_mode.headline = "great, you solved it! click on next"
+        self.game_mode.buttons['next'].activate()
+
+    def exit(self):
+        self.game_mode.buttons['previous'].activate()
+
+
+class SegmentationStep2(GameStep):
+    def __init__(self, game_mode):
+        super().__init__(game_mode)
+
+        self.has_finished = False
+        self.image_offset = (200, 20)
+        with open('assets/cosmo_instances/frauenkirche_instance.pickle', 'rb') as file:
+            file_content = pickle.load(file)
+        image_array = file_content['img']
+        height, width, _ = image_array.shape
+        self.image_size = utils.round_pos(utils.mult_pos((width, height), (0.2, 0.2)))
+        self.image = pygame.transform.scale(utils.ndarray_to_surface(image_array), self.image_size)
+
+        self.segmentation_array = file_content['segmentation']
+        self.segmentation_array_scaled = numpy.zeros((self.image_size[1], self.image_size[0]))
+        for y, row in enumerate(self.segmentation_array):
+            for x, vertex_id in enumerate(row):
+                scaled_y = round(y * 0.2)
+                scaled_x = round(x * 0.2)
+                if scaled_y < self.image_size[1] and scaled_x < self.image_size[0]:
+                    self.segmentation_array_scaled[scaled_y][scaled_x] = vertex_id
+
+        vertex_positions = file_content['nodes']
+        scaled_vertex_positions = {}
+        for vertex_id, pos in vertex_positions.items():
+            scaled_vertex_positions[vertex_id] = utils.add_pos(utils.round_pos(utils.mult_pos(pos, (0.2, 0.2))),
+                                                               self.image_offset)
+        edges = file_content['edges']
+        self.graph = GraphFactory.generate_graph_from(0.5, scaled_vertex_positions, edges)
+
+        self.image_overlay_colors = {}
+        self.node_colors = {}
+        self.overlay_image = numpy.zeros((self.image_size[1], self.image_size[0], 3))
+        self.overlay_surface = None
+
+        self.edge_line_map = {}
+
+    def enter(self):
+        self.game_mode.headline = "Image Segmentation"
+        self.game_mode.active_graph = self.graph
+        self.game_mode.active_graph.reset()
+        self.game_mode.buttons['previous'].activate()
+        self.game_mode.buttons['next'].deactivate()
+        self.game_mode.show_points = False
+
+        if self.has_finished:
+            self.game_mode.buttons['next'].activate()
+
+    def draw(self):
+        if not self.game_mode.show_image:
+            return
+
+        if len(self.image_overlay_colors) != len(self.game_mode.active_graph.groups):
+            distinct_colors = utils.generate_distinct_colors(len(self.game_mode.active_graph.groups))
+            self.image_overlay_colors = dict(zip(self.game_mode.active_graph.groups, distinct_colors))
+            self.node_colors = {}
+            for y, row in enumerate(self.segmentation_array_scaled):
+                for x, vertex_id in enumerate(row):
+                    color = self.node_colors.get(vertex_id)
+                    if color is None:
+                        vertex = self.game_mode.active_graph.get_vertex(vertex_id)
+                        color = self.image_overlay_colors.get(vertex.group)
+                        self.node_colors[vertex_id] = color
+
+                    self.overlay_image[y][x] = color
+
+            self.overlay_surface = pygame.transform.scale(utils.ndarray_to_surface(self.overlay_image), self.image_size)
+            self.overlay_surface.set_alpha(200)
+
+        self.game_mode.body_surface.blit(self.image, self.image_offset)
+
+        self.game_mode.body_surface.blit(self.overlay_surface, self.image_offset)
 
     def run(self):
         pass
