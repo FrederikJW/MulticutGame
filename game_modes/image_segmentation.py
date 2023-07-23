@@ -1,5 +1,6 @@
 import gettext
 import os
+import time
 
 import numpy
 
@@ -95,6 +96,7 @@ class SegmentationStep1(GameStep):
         self.game_mode.buttons['previous'].deactivate()
         # TODO: just for testing. change this to deactivate
         self.game_mode.buttons['next'].activate()
+        self.game_mode.buttons['reset'].hide()
         self.game_mode.show_points = False
 
         if self.has_finished:
@@ -171,19 +173,30 @@ class SegmentationStep2(GameStep):
 
         self.edge_line_map = {}
 
+        self.enter_timestamp = None
+        self.animation_finished = False
+        self.show_image = True
+        self.show_overlay = True
+
     def enter(self):
+        self.game_mode.show_image = False
+        self.enter_timestamp = time.time()
+        self.animation_finished = False
+        self.show_image = True
+        self.show_overlay = False
+
         self.game_mode.headline = "Image Segmentation"
         self.game_mode.active_graph = self.graph
         self.game_mode.active_graph.reset()
         self.game_mode.buttons['previous'].activate()
         self.game_mode.buttons['next'].deactivate()
-        self.game_mode.show_points = False
+        self.game_mode.show_points = True
 
         if self.has_finished:
             self.game_mode.buttons['next'].activate()
 
     def draw(self):
-        if not self.game_mode.show_image:
+        if not self.game_mode.show_image and self.animation_finished:
             return
 
         if len(self.image_overlay_colors) != len(self.game_mode.active_graph.groups):
@@ -203,12 +216,28 @@ class SegmentationStep2(GameStep):
             self.overlay_surface = pygame.transform.scale(utils.ndarray_to_surface(self.overlay_image), self.image_size)
             self.overlay_surface.set_alpha(200)
 
-        self.game_mode.body_surface.blit(self.image, self.image_offset)
+        if self.animation_finished or self.show_image:
+            self.game_mode.body_surface.blit(self.image, self.image_offset)
 
-        self.game_mode.body_surface.blit(self.overlay_surface, self.image_offset)
+        if self.animation_finished or self.show_overlay:
+            self.game_mode.body_surface.blit(self.overlay_surface, self.image_offset)
 
     def run(self):
-        pass
+        if not self.animation_finished:
+            time_passed = time.time() - self.enter_timestamp
+            if time_passed > 9:
+                self.show_image = False
+                self.show_overlay = False
+                self.animation_finished = True
+                self.game_mode.draw_necessary = True
+            elif time_passed > 6:
+                self.show_image = False
+                self.show_overlay = True
+                self.game_mode.draw_necessary = True
+            elif time.time() - self.enter_timestamp > 3:
+                self.show_image = True
+                self.show_overlay = True
+                self.game_mode.draw_necessary = True
 
     def is_finished(self):
         is_finished = self.game_mode.active_graph.is_solved()
