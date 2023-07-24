@@ -2,7 +2,7 @@ import gettext
 import os
 
 import constants
-from button import Button
+from button import ActionButton
 from graph import GraphFactory
 from .game_mode import GameMode
 
@@ -30,8 +30,8 @@ class ClassicGameMode(GameMode):
         margin_right = constants.MARGIN
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.update({'regenerate': Button(_('Regenerate'), (pos_x, margin_top + 50), size, 'red',
-                                                  self.regenerate_graph, constants.GAME_MODE_HEAD_OFFSET)})
+        self.buttons.update({'regenerate': ActionButton(_('Regenerate'), (pos_x, margin_top + 50), size, 'red',
+                                                        constants.GAME_MODE_HEAD_OFFSET, self.regenerate_graph)})
         self.headline = 'Try it!'
 
     def regenerate_graph(self):

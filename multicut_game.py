@@ -9,7 +9,7 @@ import pygame
 import colors
 import constants
 import utils
-from button import Button
+from button import ActionButton
 from game_modes import ClassicGameMode, Tutorial, ImageSegmentation
 from utils import sub_pos
 
@@ -58,21 +58,27 @@ class MulticutGame:
         margin_right = constants.MARGIN
         size = (constants.GAME_MODE_SCREEN_OFFSET[0] - (margin_right + margin_left), 40)
         self.buttons.append(
-            Button(_('Tutorial'), (margin_left, 190), size, 'blue', partial(self.change_game_mode, 'tutorial')))
+            ActionButton(_('Tutorial'), (margin_left, 190), size, 'blue',
+                         action_func=partial(self.change_game_mode, 'tutorial')))
         self.buttons.append(
-            Button(_('Level') + " 1", (margin_left, 240), size, 'blue', partial(self.change_game_mode, 'level1')))
+            ActionButton(_('Level') + " 1", (margin_left, 240), size, 'blue',
+                         action_func=partial(self.change_game_mode, 'level1')))
         self.buttons.append(
-            Button(_('Level') + " 2", (margin_left, 290), size, 'blue', partial(self.change_game_mode, 'level2')))
+            ActionButton(_('Level') + " 2", (margin_left, 290), size, 'blue',
+                         action_func=partial(self.change_game_mode, 'level2')))
         self.buttons.append(
-            Button(_('Level') + " 3", (margin_left, 340), size, 'blue', partial(self.change_game_mode, 'level3')))
+            ActionButton(_('Level') + " 3", (margin_left, 340), size, 'blue',
+                         action_func=partial(self.change_game_mode, 'level3')))
         self.buttons.append(
-            Button(f"Stresstest", (margin_left, 390), size, 'blue', partial(self.change_game_mode, 'stresstest')))
+            ActionButton(f"Stresstest", (margin_left, 390), size, 'blue',
+                         action_func=partial(self.change_game_mode, 'stresstest')))
         self.buttons.append(
-            Button('Image Segmentation', (margin_left, 440), size, 'blue', partial(self.change_game_mode, 'imagesegmentation')))
-        self.buttons.append(Button('Empty', (margin_left, 490), size, 'blue', None))
-        self.buttons.append(Button('Empty', (margin_left, 540), size, 'blue', None))
-        self.buttons.append(Button('Empty', (margin_left, 590), size, 'blue', None))
-        self.buttons.append(Button(_('Quit'), (margin_left, 640), size, 'red', self.quit))
+            ActionButton('Image Segmentation', (margin_left, 440), size, 'blue',
+                         action_func=partial(self.change_game_mode, 'imagesegmentation')))
+        self.buttons.append(ActionButton('Empty', (margin_left, 490), size, 'blue'))
+        self.buttons.append(ActionButton('Empty', (margin_left, 540), size, 'blue'))
+        self.buttons.append(ActionButton('Empty', (margin_left, 590), size, 'blue'))
+        self.buttons.append(ActionButton(_('Quit'), (margin_left, 640), size, 'red', action_func=self.quit))
 
     def change_game_mode(self, game_mode):
         if self.current_game_mode == game_mode:

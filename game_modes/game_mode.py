@@ -11,7 +11,7 @@ from shapely.geometry.polygon import Polygon
 import colors
 import constants
 import utils
-from button import Button
+from button import ActionButton, Switch
 from utils import sub_pos, get_distance
 
 localedir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'locale')
@@ -55,13 +55,11 @@ class GameMode(metaclass=abc.ABCMeta):
         self.move_group = None
         self.group_mouse_distance = None
         self.highlight_group = None
-        self.move_group_mode = False
 
         self.font = pygame.font.SysFont('Ariel', 32)
         self.show_headline = True
         self.headline = ''
         self.show_points = True
-        self.show_solution = False
 
         self.draw_necessary = True
 
@@ -72,14 +70,15 @@ class GameMode(metaclass=abc.ABCMeta):
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons = {}
         self.buttons.update({
-            'reset': Button('Reset1', (pos_x, margin_top), (90, 40), 'red', self.reset_graph,
-                            constants.GAME_MODE_HEAD_OFFSET),
-            'reset2': Button('Reset2', (pos_x + 110, margin_top), (90, 40), 'red', partial(self.reset_graph, True),
-                             constants.GAME_MODE_HEAD_OFFSET),
-            'solution': Button(pygame.image.load("assets/idea.png").convert_alpha(),
-                               (pos_x - 40 - 10, margin_top), (40, 40), 'blue', self.switch_solution,
-                               constants.GAME_MODE_HEAD_OFFSET),
-            'movegroup': Button('move group', (pos_x - 80 - 20, margin_top), (40, 40), 'blue', self.switch_move_mode)
+            'reset': ActionButton('Reset1', (pos_x, margin_top), (90, 40), 'red', constants.GAME_MODE_HEAD_OFFSET,
+                                  self.reset_graph),
+            'reset2': ActionButton('Reset2', (pos_x + 110, margin_top), (90, 40), 'red',
+                                   constants.GAME_MODE_HEAD_OFFSET, partial(self.reset_graph, True)),
+            'solution': Switch(pygame.image.load("assets/idea.png").convert_alpha(),
+                               (pos_x - 40 - 10, margin_top), (40, 40), 'blue', constants.GAME_MODE_HEAD_OFFSET,
+                               second_label=pygame.image.load("assets/ideaOn.png").convert_alpha()),
+            'movegroup': Switch(pygame.image.load("assets/singleNode.png").convert_alpha(), (pos_x - 80 - 20, margin_top),
+                                (40, 40), 'blue', second_label=pygame.image.load("assets/group.png").convert_alpha())
         })
 
     def reset_graph(self, one_group=False):
@@ -88,12 +87,6 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.active_graph.reset_to_one_group()
             else:
                 self.active_graph.reset()
-
-    def switch_solution(self):
-        self.show_solution = not self.show_solution
-
-    def switch_move_mode(self):
-        self.move_group_mode = not self.move_group_mode
 
     def print_headline(self):
         headline_surface = self.font.render(self.headline, True, colors.BLACK)
@@ -140,7 +133,7 @@ class GameMode(metaclass=abc.ABCMeta):
             self.head_surface.blit(*button.objects())
 
         if self.active_graph is not None:
-            self.active_graph.draw(self.highlight_group, self.show_solution)
+            self.active_graph.draw(self.highlight_group, self.buttons['solution'].get_mode())
             self.body_surface.blit(*self.active_graph.objects())
         if self.show_points:
             self.print_score()
@@ -175,7 +168,7 @@ class GameMode(metaclass=abc.ABCMeta):
         if self.active_graph is None:
             return
 
-        if self.move_group_mode:
+        if self.buttons['movegroup'].get_mode():
             for group in self.active_graph.groups:
                 if group.is_hit(self.graph_mouse_pos):
                     self.move_group = group

@@ -3,7 +3,7 @@ import gettext
 import os
 
 import constants
-from button import Button
+from button import ActionButton
 from .game_mode import GameMode
 
 localedir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'locale')
@@ -25,9 +25,10 @@ class WalkthroughGameMode(GameMode):
         size = (90, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons.update({
-            'previous': Button(_('<'), (pos_x - size[0] - 20, margin_top + 50), size, 'red',
-                               self.previous_step, self.game_mode_offset),
-            'next': Button(_('>'), (pos_x, margin_top + 50), size, 'green', self.next_step, self.game_mode_offset),
+            'previous': ActionButton(_('<'), (pos_x - size[0] - 20, margin_top + 50), size, 'red',
+                                     self.game_mode_offset, self.previous_step),
+            'next': ActionButton(_('>'), (pos_x, margin_top + 50), size, 'green', self.game_mode_offset,
+                                 self.next_step),
         })
 
         # init graphs

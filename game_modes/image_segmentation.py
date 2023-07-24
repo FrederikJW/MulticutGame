@@ -11,7 +11,7 @@ import pickle
 import pygame
 
 import utils
-from button import Button
+from button import Switch
 from graph import GraphFactory
 from .walkthrough_game_mode import WalkthroughGameMode, GameStep
 
@@ -26,8 +26,6 @@ class ImageSegmentation(WalkthroughGameMode):
     def __init__(self, size_factor=1):
         super().__init__(size_factor)
 
-        self.show_image = True
-
         seed = 3057040375451409601543510203563232304367163140911798783
         self.graphs.update({
             0: GraphFactory.generate_grid(0.7, (10, 10), seed),
@@ -39,8 +37,9 @@ class ImageSegmentation(WalkthroughGameMode):
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons.update({
-            'switch': Button(_('switch'), (pos_x - 40 - 10, margin_top + 50), (40, 40), 'blue', self.switch_show_image,
-                             constants.GAME_MODE_HEAD_OFFSET)
+            'switch': Switch(pygame.image.load("assets/imageOff.png").convert_alpha(),
+                             (pos_x - 40 - 10, margin_top + 50), (40, 40), 'blue',constants.GAME_MODE_HEAD_OFFSET,
+                             second_label=pygame.image.load("assets/imageOn.png").convert_alpha())
         })
 
         # init steps
@@ -54,8 +53,9 @@ class ImageSegmentation(WalkthroughGameMode):
 
         # self.buttons['reset'].hide()
 
-    def switch_show_image(self):
-        self.show_image = not self.show_image
+    @property
+    def show_image(self):
+        return self.buttons['switch'].get_mode()
 
 
 class SegmentationStep1(GameStep):
@@ -179,7 +179,7 @@ class SegmentationStep2(GameStep):
         self.show_overlay = True
 
     def enter(self):
-        self.game_mode.show_image = False
+        self.game_mode.buttons['switch'].switch_mode = False
         self.enter_timestamp = time.time()
         self.animation_finished = False
         self.show_image = True
