@@ -24,12 +24,10 @@ class WalkthroughGameMode(GameMode):
         margin_right = constants.MARGIN
         size = (90, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.update({
-            'previous': ActionButton(_('<'), (pos_x - size[0] - 20, margin_top + 50), size, 'red',
-                                     self.game_mode_offset, self.previous_step),
-            'next': ActionButton(_('>'), (pos_x, margin_top + 50), size, 'green', self.game_mode_offset,
-                                 self.next_step),
-        })
+        self.buttons.update({'previous': ActionButton(_('<'), (pos_x - size[0] - 20, margin_top + 50), size, 'red',
+                                                      self.game_mode_offset, self.previous_step),
+                             'next': ActionButton(_('>'), (pos_x, margin_top + 50), size, 'green',
+                                                  self.game_mode_offset, self.next_step), })
 
         # init graphs
         self.graphs = {}

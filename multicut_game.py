@@ -3,14 +3,13 @@ import os
 import sys
 from functools import partial
 
-
 import pygame
 
 import colors
 import constants
 import utils
 from button import ActionButton
-from game_modes import ClassicGameMode, Tutorial, ImageSegmentation
+from game_modes import ClassicGameMode, Tutorial, ImageSegmentation, GreedyJoining
 from utils import sub_pos
 
 localedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'locale')
@@ -44,38 +43,29 @@ class MulticutGame:
         self.current_game_mode = None
         self.init_buttons()
 
-        self.game_modes = {
-            'tutorial': Tutorial(),
-            'level1': ClassicGameMode('grid', 4, 4),
-            'level2': ClassicGameMode('grid', 5, 5),
-            'level3': ClassicGameMode('pentagram'),
-            'stresstest': ClassicGameMode('grid', 10, 10, 0.5),
-            'imagesegmentation': ImageSegmentation(),
-        }
+        self.game_modes = {'tutorial': Tutorial(), 'level1': ClassicGameMode('grid', 4, 4),
+                           'level2': ClassicGameMode('grid', 5, 5), 'level3': ClassicGameMode('pentagram'),
+                           'stresstest': ClassicGameMode('grid', 10, 10, 0.5), 'imagesegmentation': ImageSegmentation(),
+                           'greedyjoining': GreedyJoining(), }
 
     def init_buttons(self):
         margin_left = constants.MARGIN
         margin_right = constants.MARGIN
         size = (constants.GAME_MODE_SCREEN_OFFSET[0] - (margin_right + margin_left), 40)
-        self.buttons.append(
-            ActionButton(_('Tutorial'), (margin_left, 190), size, 'blue',
-                         action_func=partial(self.change_game_mode, 'tutorial')))
-        self.buttons.append(
-            ActionButton(_('Level') + " 1", (margin_left, 240), size, 'blue',
-                         action_func=partial(self.change_game_mode, 'level1')))
-        self.buttons.append(
-            ActionButton(_('Level') + " 2", (margin_left, 290), size, 'blue',
-                         action_func=partial(self.change_game_mode, 'level2')))
-        self.buttons.append(
-            ActionButton(_('Level') + " 3", (margin_left, 340), size, 'blue',
-                         action_func=partial(self.change_game_mode, 'level3')))
-        self.buttons.append(
-            ActionButton(f"Stresstest", (margin_left, 390), size, 'blue',
-                         action_func=partial(self.change_game_mode, 'stresstest')))
-        self.buttons.append(
-            ActionButton('Image Segmentation', (margin_left, 440), size, 'blue',
-                         action_func=partial(self.change_game_mode, 'imagesegmentation')))
-        self.buttons.append(ActionButton('Empty', (margin_left, 490), size, 'blue'))
+        self.buttons.append(ActionButton(_('Tutorial'), (margin_left, 190), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'tutorial')))
+        self.buttons.append(ActionButton(_('Level') + " 1", (margin_left, 240), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'level1')))
+        self.buttons.append(ActionButton(_('Level') + " 2", (margin_left, 290), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'level2')))
+        self.buttons.append(ActionButton(_('Level') + " 3", (margin_left, 340), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'level3')))
+        self.buttons.append(ActionButton(f"Stresstest", (margin_left, 390), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'stresstest')))
+        self.buttons.append(ActionButton('Image Segmentation', (margin_left, 440), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'imagesegmentation')))
+        self.buttons.append(ActionButton('Greedy Joining', (margin_left, 490), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'greedyjoining')))
         self.buttons.append(ActionButton('Empty', (margin_left, 540), size, 'blue'))
         self.buttons.append(ActionButton('Empty', (margin_left, 590), size, 'blue'))
         self.buttons.append(ActionButton(_('Quit'), (margin_left, 640), size, 'red', action_func=self.quit))
@@ -95,8 +85,8 @@ class MulticutGame:
         while True:
             self.surface.fill(colors.WHITE)
 
-            screen_size_ratio = (constants.SCREEN_SIZE[0] / self.screen_size[0],
-                                 constants.SCREEN_SIZE[1] / self.screen_size[1])
+            screen_size_ratio = (
+                constants.SCREEN_SIZE[0] / self.screen_size[0], constants.SCREEN_SIZE[1] / self.screen_size[1])
 
             mouse_pos = utils.round_pos(utils.mult_pos(pygame.mouse.get_pos(), screen_size_ratio))
             events = pygame.event.get()

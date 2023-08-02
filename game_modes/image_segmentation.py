@@ -1,15 +1,13 @@
 import gettext
 import os
+import pickle
 import time
 
 import numpy
+import pygame
 
 import colors
 import constants
-
-import pickle
-import pygame
-
 import utils
 from button import Switch
 from graph import GraphFactory
@@ -27,26 +25,20 @@ class ImageSegmentation(WalkthroughGameMode):
         super().__init__(size_factor)
 
         seed = 3057040375451409601543510203563232304367163140911798783
-        self.graphs.update({
-            0: GraphFactory.generate_grid(0.7, (10, 10), seed),
-        })
+        self.graphs.update({0: GraphFactory.generate_grid(0.7, (10, 10), seed), })
 
         # init buttons
         margin_top = constants.MARGIN
         margin_right = constants.MARGIN
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.update({
-            'switch': Switch(pygame.image.load("assets/imageOff.png").convert_alpha(),
-                             (pos_x - 40 - 10, margin_top + 50), (40, 40), 'blue',constants.GAME_MODE_HEAD_OFFSET,
-                             second_label=pygame.image.load("assets/imageOn.png").convert_alpha())
-        })
+        self.buttons.update({'switch': Switch(pygame.image.load("assets/imageOff.png").convert_alpha(),
+                                              (pos_x - 40 - 10, margin_top + 50), (40, 40), 'blue',
+                                              constants.GAME_MODE_HEAD_OFFSET,
+                                              second_label=pygame.image.load("assets/imageOn.png").convert_alpha())})
 
         # init steps
-        self.init_game_steps([
-            SegmentationStep1(self),
-            SegmentationStep2(self),
-        ])
+        self.init_game_steps([SegmentationStep1(self), SegmentationStep2(self), ])
 
         # start with first step
         self.next_step()

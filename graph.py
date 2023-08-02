@@ -1,12 +1,12 @@
+import copy
 import math
-import threading
 import random
+import threading
 
 import networkx as nx
 import numpy
 import pygame
 from pygame import gfxdraw
-
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
@@ -14,24 +14,23 @@ import constants
 import utils
 from colors import *
 from solvers import multicut_ilp
-from utils import draw_thick_aaline, draw_cut_thick_aaline, calculate_polygon, get_distance, generate_distinct_colors, \
+from utils import draw_thick_aaline, draw_cut_thick_aaline, calculate_polygon, generate_distinct_colors, \
     line_line_intersect
 
 
 class GraphFactory:
     @staticmethod
-    def generate_grid(size_factor, size, seed=None):
+    def generate_grid(size_factor, size, seed=None, state_saving=False):
         # get weights
         num_edges = 2 * size[0] * size[1] - size[0] - size[1]
         weights = GraphFactory.get_weights(num_edges, seed)
 
         # generate vertices
-        graph = Graph(size_factor, *(0, 0), *constants.GAME_MODE_BODY_SIZE)
+        graph = Graph(size_factor, *(0, 0), *constants.GAME_MODE_BODY_SIZE, state_saving)
         i = 0
         for y in range(size[1]):
             for x in range(size[0]):
-                graph.add_vertex(
-                    Vertex(size_factor, i, (
+                graph.add_vertex(Vertex(size_factor, i, (
                     (x * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[0]) * size_factor,
                     (y * constants.GRAPH_VERTEX_DISTANCE_GRID + constants.GRAPH_RELATIVE_OFFSET[1]) * size_factor)))
                 i += 1
@@ -48,6 +47,9 @@ class GraphFactory:
                     graph.add_edge(i, i + size[0], weights[j])
                     j += 1
                 i += 1
+
+        graph.set_unchanged()
+        graph.save_state()
 
         # calculating optimal solution is done in a new thread so the game can continue
         my_thread = threading.Thread(target=graph.calculate_solution)
@@ -76,6 +78,9 @@ class GraphFactory:
                 graph.add_edge(i, j, weights[k])
                 k += 1
 
+        graph.set_unchanged()
+        graph.save_state()
+
         # calculating optimal solution is done in a new thread so the game can continue
         my_thread = threading.Thread(target=graph.calculate_solution)
         my_thread.start()
@@ -102,6 +107,9 @@ class GraphFactory:
         for vertex_tuple, weight in edges.items():
             graph.add_edge(*vertex_tuple, weight)
 
+        graph.set_unchanged()
+        graph.save_state()
+
         # calculating optimal solution is done in a new thread so the game can continue
         my_thread = threading.Thread(target=graph.calculate_solution)
         my_thread.start()
@@ -109,7 +117,7 @@ class GraphFactory:
 
 
 class Graph:
-    def __init__(self, size_factor, x, y, width, height):
+    def __init__(self, size_factor, x, y, width, height, state_saving=False):
         self.size_factor = size_factor
         self.groups = []
         self.vertices = {}
@@ -122,8 +130,24 @@ class Graph:
         self.optimal_edge_set = None
         self.optimal_groups = None
         self.vertices_color = None
+        self.state_saving = state_saving
+        self.prev_state = None
+        self._has_changed = False
 
         self.draw()
+
+    def save_state(self):
+        self.prev_state = copy.copy(self)
+
+    @property
+    def has_changed(self):
+        if self._has_changed:
+            self._has_changed = False
+            return True
+        return False
+
+    def set_unchanged(self):
+        self._has_changed = False
 
     def print_cut_edges_as_seed(self):
         seed = ''
@@ -188,6 +212,7 @@ class Graph:
     def merge_groups(self, group1, group2):
         for vertex in list(group1.vertices.values()):
             self.move_vertex_to_group(vertex, group2)
+        self._has_changed = True
 
     def get_nx_graph(self):
         graph = nx.Graph()
@@ -252,10 +277,12 @@ class Graph:
 
         for group, old_center in old_group_center_pos_by_group.items():
             old_total_nodes = old_group_total_nodes_by_group[group]
-            update_vector = utils.calculate_update_vector(
-                group.get_center(), old_center, old_total_nodes, len(group.vertices) / old_total_nodes)
+            update_vector = utils.calculate_update_vector(group.get_center(), old_center, old_total_nodes,
+                                                          len(group.vertices) / old_total_nodes)
             update_vector = (update_vector[0] * self.size_factor, update_vector[1] * self.size_factor)
             group.move(utils.add_pos(group.pos, update_vector))
+
+        self._has_changed = True
 
     def add_vertex(self, vertex):
         self.vertices[vertex.id] = vertex
@@ -289,6 +316,7 @@ class Graph:
         vertex.group = group
         group.add_vertex(vertex)
         group.calculate_pos()
+        self._has_changed = True
 
     def calculate_solution(self):
         self.optimal_edge_set, self.optimal_score = multicut_ilp(self.get_nx_graph())
@@ -301,6 +329,9 @@ class Graph:
         for color, group in self.optimal_groups:
             for vertex in group:
                 self.vertices_color[vertex.id] = color
+
+        if self.state_saving:
+            self.save_state()
 
     def get_score(self):
         score = 0
@@ -337,6 +368,48 @@ class Graph:
 
     def objects(self):
         return self.surface, self.rec
+
+    def __copy__(self):
+        groups = dict(
+            {tuple(group.vertices.keys()): (group.pos, group.init_pos, group.radius) for group in self.groups})
+
+        vertices = dict({vertex.id: (vertex.pos, vertex.init_pos, vertex.radius) for vertex in self.vertices.values()})
+
+        edges = tuple(((edge.vertex1.id, edge.vertex2.id, edge.weight) for edge in self.edges))
+
+        graph = Graph(self.size_factor, *(0, 0), *constants.GAME_MODE_BODY_SIZE, self.state_saving)
+
+        for vertex_id, vertex_tuple in vertices.items():
+            vertex = Vertex(self.size_factor, vertex_id, vertex_tuple[0])
+            vertex.init_pos = vertex_tuple[1]
+            vertex.radius = vertex_tuple[2]
+            graph.add_vertex(vertex)
+
+        for edge_tuple in edges:
+            graph.add_edge(*edge_tuple)
+
+        for group_vertices, group_tuple in groups.items():
+            group = graph.get_vertex(group_vertices[0]).group
+            group.pos = group_tuple[0]
+            group.init_pos = group_tuple[1]
+            group.radius = group_tuple[2]
+            for vertex_id in group_vertices[1:]:
+                graph.move_vertex_to_group(graph.get_vertex(vertex_id), group)
+
+        if self.optimal_score is not None:
+            graph.optimal_score = self.optimal_score
+            graph.optimal_edge_set = self.optimal_edge_set
+            optimal_groups = graph.get_groups_by_cut(graph.optimal_edge_set)
+            graph.vertices_color = {}
+            colors = set(generate_distinct_colors(len(optimal_groups)))
+            graph.optimal_groups = zip(colors, optimal_groups)
+            for color, group in graph.optimal_groups:
+                for vertex in group:
+                    graph.vertices_color[vertex.id] = color
+
+        graph.set_unchanged()
+
+        return graph
 
 
 class Group:

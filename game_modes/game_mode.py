@@ -5,8 +5,6 @@ from functools import partial
 
 import pygame
 from pygame import gfxdraw
-from shapely.geometry import Point
-from shapely.geometry.polygon import Polygon
 
 import colors
 import constants
@@ -74,12 +72,12 @@ class GameMode(metaclass=abc.ABCMeta):
                                   self.reset_graph),
             'reset2': ActionButton('Reset2', (pos_x + 110, margin_top), (90, 40), 'red',
                                    constants.GAME_MODE_HEAD_OFFSET, partial(self.reset_graph, True)),
-            'solution': Switch(pygame.image.load("assets/idea.png").convert_alpha(),
-                               (pos_x - 40 - 10, margin_top), (40, 40), 'blue', constants.GAME_MODE_HEAD_OFFSET,
+            'solution': Switch(pygame.image.load("assets/idea.png").convert_alpha(), (pos_x - 40 - 10, margin_top),
+                               (40, 40), 'blue', constants.GAME_MODE_HEAD_OFFSET,
                                second_label=pygame.image.load("assets/ideaOn.png").convert_alpha()),
-            'movegroup': Switch(pygame.image.load("assets/singleNode.png").convert_alpha(), (pos_x - 80 - 20, margin_top),
-                                (40, 40), 'blue', second_label=pygame.image.load("assets/group.png").convert_alpha())
-        })
+            'movegroup': Switch(pygame.image.load("assets/singleNode.png").convert_alpha(),
+                                (pos_x - 80 - 20, margin_top), (40, 40), 'blue',
+                                second_label=pygame.image.load("assets/group.png").convert_alpha())})
 
     def reset_graph(self, one_group=False):
         if self.active_graph is not None:
@@ -182,8 +180,9 @@ class GameMode(metaclass=abc.ABCMeta):
                         self.active_graph.move_vertex_to_group(self.move_vertex, None)
                     break
 
-        if self.move_vertex is None and self.move_group is None and \
-                pygame.Rect(constants.GAME_MODE_BODY_OFFSET, self.body_surface.get_size()).collidepoint(self.mouse_pos):
+        if self.move_vertex is None and self.move_group is None and pygame.Rect(constants.GAME_MODE_BODY_OFFSET,
+                                                                                self.body_surface.get_size()).collidepoint(
+            self.mouse_pos):
             self.is_cutting = True
 
     def mouse_up_event(self):
@@ -192,12 +191,18 @@ class GameMode(metaclass=abc.ABCMeta):
             if vertex_hit is not None:
                 self.active_graph.move_vertex_to_group(self.move_vertex, vertex_hit.group)
                 self.draw_necessary = True
+            else:
+                if self.active_graph.saving_state:
+                    self.active_graph.save_state()
 
         if self.move_group is not None and self.active_graph is not None:
             overlapped_group = self.active_graph.group_overlap(self.move_group)
             if overlapped_group is not None:
                 self.active_graph.merge_groups(self.move_group, overlapped_group)
                 self.draw_necessary = True
+            else:
+                if self.active_graph.state_saving:
+                    self.active_graph.save_state()
 
         self.move_vertex = None
         self.move_group = None
@@ -249,8 +254,8 @@ class GameMode(metaclass=abc.ABCMeta):
 
         # calculate cut line
         if self.is_cutting:
-            if len(self.cut_line) == 0 \
-                    or get_distance(self.graph_mouse_pos, self.cut_line[-1]) > constants.GRAPH_CUT_LINE_POINT_DISTANCE:
+            if len(self.cut_line) == 0 or get_distance(self.graph_mouse_pos,
+                                                       self.cut_line[-1]) > constants.GRAPH_CUT_LINE_POINT_DISTANCE:
                 if len(self.cut_line) != 0:
                     self.cut_edge_set = self.cut_edge_set.union(
                         self.active_graph.get_intersected_edges(self.cut_line[-1], self.graph_mouse_pos))
