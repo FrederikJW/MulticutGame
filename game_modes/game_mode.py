@@ -29,9 +29,16 @@ class GameMode(metaclass=abc.ABCMeta):
         self.head_surface.fill(colors.COLOR_KEY)
         self.head_surface.set_colorkey(colors.COLOR_KEY)
 
+        self.text_box_surface = pygame.Surface(constants.GAME_MODE_TEXT_BOX_SIZE)
+        self.text_box_surface.fill(colors.COLOR_KEY)
+        self.text_box_surface.set_colorkey(colors.COLOR_KEY)
+
         self.body_surface = pygame.Surface(constants.GAME_MODE_BODY_SIZE)
         self.body_surface.fill(colors.COLOR_KEY)
         self.body_surface.set_colorkey(colors.COLOR_KEY)
+        self.grey_overlay = pygame.Surface(constants.GAME_MODE_BODY_SIZE)
+        self.grey_overlay.fill(colors.BLACK)
+        self.grey_overlay.set_alpha(100)
 
         self.surface = pygame.Surface(constants.GAME_MODE_SCREEN_SIZE)
         self.surface.fill(colors.COLOR_KEY)
@@ -56,14 +63,15 @@ class GameMode(metaclass=abc.ABCMeta):
 
         self.font = pygame.font.SysFont('Ariel', 32)
         self.show_headline = True
+        self.standard_headline = ''
         self.headline = ''
         self.show_points = True
 
         self.draw_necessary = True
 
         # init buttons
-        margin_top = constants.MARGIN
-        margin_right = constants.MARGIN
+        margin_top = constants.GAME_MODE_MARGIN
+        margin_right = constants.GAME_MODE_MARGIN
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons = {}
@@ -85,12 +93,17 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.active_graph.reset_to_one_group()
             else:
                 self.active_graph.reset()
+        self.headline = self.standard_headline
 
     def print_headline(self):
-        headline_surface = self.font.render(self.headline, True, colors.BLACK)
-        headline_rec = headline_surface.get_rect().move(constants.MARGIN, constants.MARGIN)
+        if self.headline == '':
+            self.headline = self.standard_headline
 
-        self.head_surface.blit(headline_surface, headline_rec)
+        self.text_box_surface.fill(colors.COLOR_KEY)
+        utils.blit_text(self.text_box_surface, self.headline, (0, 0), self.font, colors.BLACK)
+
+        self.head_surface.blit(self.text_box_surface, (constants.GAME_MODE_MARGIN, constants.GAME_MODE_MARGIN,
+                                                       *self.text_box_surface.get_size()))
 
     def print_score(self):
         if self.active_graph is not None:
@@ -107,11 +120,11 @@ class GameMode(metaclass=abc.ABCMeta):
         score_surface = self.font.render(_('Score') + f" = {score}", True, colors.BLACK)
         score_rec = score_surface.get_rect()
         score_rec = score_surface.get_rect().move(
-            (constants.MARGIN, constants.GAME_MODE_HEAD_SIZE[1] - constants.MARGIN - score_rec.height))
+            (constants.GAME_MODE_MARGIN, constants.GAME_MODE_HEAD_SIZE[1] - constants.GAME_MODE_MARGIN - score_rec.height))
 
         optimal_score_surface = self.font.render(_('Optimal Score') + f" = {optimal_score}", True, colors.BLACK)
         optimal_score_rec = optimal_score_surface.get_rect().move(
-            (score_rec.x + score_rec.width + constants.MARGIN, score_rec.y))
+            (score_rec.x + score_rec.width + constants.GAME_MODE_MARGIN, score_rec.y))
 
         self.head_surface.blit(score_surface, score_rec)
         self.head_surface.blit(optimal_score_surface, optimal_score_rec)
@@ -149,6 +162,9 @@ class GameMode(metaclass=abc.ABCMeta):
 
         self.draw()
 
+        if self.active_graph.deactivated:
+            self.body_surface.blit(self.grey_overlay, (0, 0))
+
         self.surface.blit(self.head_surface, constants.GAME_MODE_HEAD_RELATIVE_OFFSET)
         self.surface.blit(self.body_surface, constants.GAME_MODE_BODY_RELATIVE_OFFSET)
 
@@ -163,7 +179,7 @@ class GameMode(metaclass=abc.ABCMeta):
                 button.action()
                 self.draw_necessary = True
 
-        if self.active_graph is None:
+        if self.active_graph is None or self.active_graph.deactivated:
             return
 
         if self.buttons['movegroup'].get_mode():
@@ -180,9 +196,9 @@ class GameMode(metaclass=abc.ABCMeta):
                         self.active_graph.move_vertex_to_group(self.move_vertex, None)
                     break
 
-        if self.move_vertex is None and self.move_group is None and pygame.Rect(constants.GAME_MODE_BODY_OFFSET,
-                                                                                self.body_surface.get_size()).collidepoint(
-            self.mouse_pos):
+        if (self.move_vertex is None and self.move_group is None
+                and pygame.Rect(constants.GAME_MODE_BODY_OFFSET,
+                                self.body_surface.get_size()).collidepoint(self.mouse_pos)):
             self.is_cutting = True
 
     def mouse_up_event(self):
@@ -192,7 +208,7 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.active_graph.move_vertex_to_group(self.move_vertex, vertex_hit.group)
                 self.draw_necessary = True
             else:
-                if self.active_graph.saving_state:
+                if self.active_graph.state_saving:
                     self.active_graph.save_state()
 
         if self.move_group is not None and self.active_graph is not None:

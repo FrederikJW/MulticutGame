@@ -134,7 +134,32 @@ class Graph:
         self.prev_state = None
         self._has_changed = False
 
+        self.deactivated = False
+
         self.draw()
+
+    def get_best_score_improvement(self):
+        group_pairs = set()
+        for edge in self.edges:
+            if (edge.vertex1.group != edge.vertex2.group and
+                    not ((edge.vertex1.group, edge.vertex2.group) in group_pairs
+                         and (edge.vertex1.group, edge.vertex2.group) in group_pairs)):
+                group_pairs.add((edge.vertex1.group, edge.vertex2.group))
+
+        best_score = 0
+        for group1, group2 in group_pairs:
+            score = -self.get_weight_between_groups(group1, group2)
+            if score < best_score:
+                best_score = score
+        return best_score
+
+    def get_weight_between_groups(self, group1, group2):
+        score = 0
+        for vertex in group1.vertices.values():
+            for edge in vertex.edges.values():
+                if edge.vertex1.group == group2 or edge.vertex2.group == group2:
+                    score += edge.weight
+        return score
 
     def save_state(self):
         self.prev_state = copy.copy(self)
@@ -225,6 +250,8 @@ class Graph:
         for vertex in self.vertices.values():
             vertex.reset()
             self.groups.append(vertex.group)
+        self.save_state()
+        self.deactivated = False
 
     def reset_to_one_group(self):
         group = Group(self.size_factor, list(self.vertices.values())[0])
@@ -236,6 +263,8 @@ class Graph:
         group.init_pos = self.rec.center
         group.pos = self.rec.center
         group.calculate_pos()
+        self.save_state()
+        self.deactivated = False
 
     def cut(self, edge_set):
         edge_set = [e for e in edge_set if not e.is_cut()]

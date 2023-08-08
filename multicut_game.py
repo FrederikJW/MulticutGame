@@ -49,8 +49,8 @@ class MulticutGame:
                            'greedyjoining': GreedyJoining(), }
 
     def init_buttons(self):
-        margin_left = constants.MARGIN
-        margin_right = constants.MARGIN
+        margin_left = constants.MENU_MARGIN
+        margin_right = constants.MENU_MARGIN
         size = (constants.GAME_MODE_SCREEN_OFFSET[0] - (margin_right + margin_left), 40)
         self.buttons.append(ActionButton(_('Tutorial'), (margin_left, 190), size, 'blue',
                                          action_func=partial(self.change_game_mode, 'tutorial')))

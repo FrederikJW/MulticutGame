@@ -20,8 +20,8 @@ class WalkthroughGameMode(GameMode):
         self.game_mode_offset = (self.rec[0], self.rec[1])
 
         # init buttons
-        margin_top = constants.MARGIN
-        margin_right = constants.MARGIN
+        margin_top = constants.GAME_MODE_MARGIN
+        margin_right = constants.GAME_MODE_MARGIN
         size = (90, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons.update({'previous': ActionButton(_('<'), (pos_x - size[0] - 20, margin_top + 50), size, 'red',

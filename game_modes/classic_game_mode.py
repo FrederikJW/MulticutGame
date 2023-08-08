@@ -26,8 +26,8 @@ class ClassicGameMode(GameMode):
             self.active_graph = GraphFactory.generate_complete_graph(self.size_factor, 5)
 
         # init buttons
-        margin_top = constants.MARGIN
-        margin_right = constants.MARGIN
+        margin_top = constants.GAME_MODE_MARGIN
+        margin_right = constants.GAME_MODE_MARGIN
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons.update({'regenerate': ActionButton(_('Regenerate'), (pos_x, margin_top + 50), size, 'red',

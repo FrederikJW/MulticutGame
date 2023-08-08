@@ -28,8 +28,8 @@ class ImageSegmentation(WalkthroughGameMode):
         self.graphs.update({0: GraphFactory.generate_grid(0.7, (10, 10), seed), })
 
         # init buttons
-        margin_top = constants.MARGIN
-        margin_right = constants.MARGIN
+        margin_top = constants.GAME_MODE_MARGIN
+        margin_right = constants.GAME_MODE_MARGIN
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons.update({'switch': Switch(pygame.image.load("assets/imageOff.png").convert_alpha(),
