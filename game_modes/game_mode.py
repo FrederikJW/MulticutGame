@@ -95,6 +95,17 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.active_graph.reset()
         self.headline = self.standard_headline
 
+    def change_all_buttons(self, action):
+        for button in self.buttons.values():
+            if action == 'hide':
+                button.hide()
+            elif action == 'show':
+                button.show()
+            elif action == 'activate':
+                button.activate()
+            elif action == 'deactivate':
+                button.deactivate()
+
     def print_headline(self):
         if self.headline == '':
             self.headline = self.standard_headline

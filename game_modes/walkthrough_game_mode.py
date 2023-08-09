@@ -106,26 +106,20 @@ class GameStep:
     def __init__(self, game_mode):
         self.game_mode = game_mode
 
-    @abc.abstractmethod
     def enter(self):
         pass
 
-    @abc.abstractmethod
     def draw(self):
         pass
 
-    @abc.abstractmethod
     def run(self):
         pass
 
-    @abc.abstractmethod
     def is_finished(self):
         pass
 
-    @abc.abstractmethod
     def finish(self):
         pass
 
-    @abc.abstractmethod
     def exit(self):
         pass

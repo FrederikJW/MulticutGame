@@ -161,6 +161,9 @@ class Switch(Button):
         self.switch_mode = not self.switch_mode
         self.draw_necessary = True
 
+    def set_mode(self, switch_mode):
+        self.switch_mode = switch_mode
+
     def get_mode(self):
         return self.switch_mode
 
