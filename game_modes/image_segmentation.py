@@ -82,7 +82,12 @@ class SegmentationStep1(GameStep):
                 self.edge_line_map[(i - 10, i)] = (pos1, pos2)
 
     def enter(self):
-        self.game_mode.headline = "Image Segmentation"
+        self.game_mode.standard_headline = ("One possible usecase for the multicut minimization problem is image "
+                                            "segmentation where an image is split into related parts. In the first "
+                                            "example we want to split the Tree from the sky and the ground. You can see"
+                                            "the image and your current progress if you click on the button with the "
+                                            "image icon on the right. Try to solve it.")
+        self.game_mode.headline = self.game_mode.standard_headline
         self.game_mode.set_active_graph(0)
         self.game_mode.active_graph.reset_to_one_group()
         self.game_mode.buttons['previous'].deactivate()
@@ -121,8 +126,11 @@ class SegmentationStep1(GameStep):
         return is_finished
 
     def finish(self):
-        self.game_mode.headline = "great, you solved it! click on next"
-        self.game_mode.buttons['next'].activate()
+        self.game_mode.headline = ("Great you solved it. You can see below how solving the graph split the image into "
+                                   "parts seperated by red lines. Click on next to do the next image.")
+        self.game_mode.buttons['switch'].set_mode(True)
+        self.game_mode.active_graph.deactivated = True
+        self.game_mode.draw_necessary = True
 
     def exit(self):
         self.game_mode.buttons['previous'].activate()
@@ -171,13 +179,18 @@ class SegmentationStep2(GameStep):
         self.show_overlay = True
 
     def enter(self):
+        self.game_mode.standard_headline = ("This image is a bit more complicated. The image has already been split "
+                                            "into parts, but we seek to group related parts to understand the image "
+                                            "better. Try to solve it and don't forget to check your progress with the "
+                                            "image button one the right.")
+        self.game_mode.headline = self.game_mode.standard_headline
+
         self.game_mode.buttons['switch'].switch_mode = False
         self.enter_timestamp = time.time()
         self.animation_finished = False
         self.show_image = True
         self.show_overlay = False
 
-        self.game_mode.headline = "Image Segmentation"
         self.game_mode.active_graph = self.graph
         self.game_mode.active_graph.reset()
         self.game_mode.buttons['previous'].activate()
@@ -238,8 +251,10 @@ class SegmentationStep2(GameStep):
         return is_finished
 
     def finish(self):
-        self.game_mode.headline = "great, you solved it! click on next"
-        self.game_mode.buttons['next'].activate()
+        self.game_mode.headline = "Great! That's it with the segmentation gamemode."
+        self.game_mode.buttons['switch'].set_mode(True)
+        self.game_mode.active_graph.deactivated = True
+        self.game_mode.draw_necessary = True
 
     def exit(self):
         self.game_mode.buttons['previous'].activate()
