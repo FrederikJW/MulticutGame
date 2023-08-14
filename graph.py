@@ -335,8 +335,6 @@ class Graph:
         group_old.remove_vertex(vertex)
         if len(group_old.vertices) == 0:
             self.groups.remove(group_old)
-        else:
-            group_old.calculate_pos()
 
         if group is None:
             group = Group(self.size_factor, vertex)
@@ -462,6 +460,12 @@ class Group:
 
     def remove_vertex(self, vertex):
         self.vertices.pop(vertex.id)
+        if len(self.vertices) == 1:
+            vertex = list(self.vertices.values())[0]
+            self.pos = vertex.pos
+            self.init_pos = vertex.init_pos
+        if len(self.vertices) > 0:
+            self.calculate_pos()
 
     def is_hit(self, pos):
         if self.polygon is not None:
