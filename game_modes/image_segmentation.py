@@ -142,13 +142,18 @@ class SegmentationStep2(GameStep):
 
         self.has_finished = False
         self.image_offset = (200, 20)
+
+        # get image and overlay data from file
         with open('assets/cosmo_instances/frauenkirche_instance.pickle', 'rb') as file:
             file_content = pickle.load(file)
+
+        # construct image
         image_array = file_content['img']
         height, width, _ = image_array.shape
         self.image_size = utils.round_pos(utils.mult_pos((width, height), (0.2, 0.2)))
         self.image = pygame.transform.scale(utils.ndarray_to_surface(image_array), self.image_size)
 
+        # construct overlay
         self.segmentation_array = file_content['segmentation']
         self.segmentation_array_scaled = numpy.zeros((self.image_size[1], self.image_size[0]))
         for y, row in enumerate(self.segmentation_array):
@@ -158,6 +163,7 @@ class SegmentationStep2(GameStep):
                 if scaled_y < self.image_size[1] and scaled_x < self.image_size[0]:
                     self.segmentation_array_scaled[scaled_y][scaled_x] = vertex_id
 
+        # construct graph
         vertex_positions = file_content['nodes']
         scaled_vertex_positions = {}
         for vertex_id, pos in vertex_positions.items():
@@ -174,7 +180,11 @@ class SegmentationStep2(GameStep):
         self.edge_line_map = {}
 
         self.enter_timestamp = None
+        self.prev_timestamp = None
         self.animation_finished = False
+        self.animation_stage = None
+        self.animation_num_of_vertices = 0
+        self.animation_redraw_overlay = True
         self.show_image = True
         self.show_overlay = True
 
@@ -187,7 +197,11 @@ class SegmentationStep2(GameStep):
 
         self.game_mode.buttons['switch'].switch_mode = False
         self.enter_timestamp = time.time()
+        self.prev_timestamp = time.time()
         self.animation_finished = False
+        self.animation_stage = 1
+        self.animation_num_of_vertices = 0
+        self.animation_redraw_overlay = True
         self.show_image = True
         self.show_overlay = False
 
@@ -204,12 +218,16 @@ class SegmentationStep2(GameStep):
         if not self.game_mode.show_image and self.animation_finished:
             return
 
-        if len(self.image_overlay_colors) != len(self.game_mode.active_graph.groups):
-            distinct_colors = utils.generate_distinct_colors(len(self.game_mode.active_graph.groups))
+        if len(self.image_overlay_colors) != len(self.game_mode.active_graph.groups) or self.animation_redraw_overlay:
+            self.animation_redraw_overlay = False
+            distinct_colors = list(set(utils.generate_distinct_colors(len(self.game_mode.active_graph.groups))))
             self.image_overlay_colors = dict(zip(self.game_mode.active_graph.groups, distinct_colors))
             self.node_colors = {}
             for y, row in enumerate(self.segmentation_array_scaled):
                 for x, vertex_id in enumerate(row):
+                    if vertex_id > self.animation_num_of_vertices:
+                        self.overlay_image[y][x] = colors.COLOR_KEY
+                        continue
                     color = self.node_colors.get(vertex_id)
                     if color is None:
                         vertex = self.game_mode.active_graph.get_vertex(vertex_id)
@@ -219,6 +237,7 @@ class SegmentationStep2(GameStep):
                     self.overlay_image[y][x] = color
 
             self.overlay_surface = pygame.transform.scale(utils.ndarray_to_surface(self.overlay_image), self.image_size)
+            self.overlay_surface.set_colorkey(colors.COLOR_KEY)
             self.overlay_surface.set_alpha(200)
 
         if self.animation_finished or self.show_image:
@@ -229,19 +248,31 @@ class SegmentationStep2(GameStep):
 
     def run(self):
         if not self.animation_finished:
-            time_passed = time.time() - self.enter_timestamp
-            if time_passed > 9:
+            time_passed = time.time() - self.prev_timestamp
+            if self.animation_stage == 1 and time_passed > 3:
+                self.animation_stage = 2
+                self.prev_timestamp = time.time()
+                self.show_image = True
+                self.show_overlay = True
+                self.game_mode.draw_necessary = True
+            elif self.animation_stage == 2 and time_passed > 0.2:
+                self.prev_timestamp = time.time()
+                self.animation_num_of_vertices += 1
+                if self.animation_num_of_vertices > len(self.game_mode.active_graph.vertices):
+                    self.animation_stage = 3
+                self.game_mode.draw_necessary = True
+                self.animation_redraw_overlay = True
+            elif self.animation_stage == 3 and time_passed > 3:
+                self.prev_timestamp = time.time()
+                self.show_image = False
+                self.show_overlay = True
+                self.game_mode.draw_necessary = True
+                self.animation_stage = 4
+            elif self.animation_stage == 4 and time_passed > 3:
+                self.prev_timestamp = time.time()
                 self.show_image = False
                 self.show_overlay = False
                 self.animation_finished = True
-                self.game_mode.draw_necessary = True
-            elif time_passed > 6:
-                self.show_image = False
-                self.show_overlay = True
-                self.game_mode.draw_necessary = True
-            elif time.time() - self.enter_timestamp > 3:
-                self.show_image = True
-                self.show_overlay = True
                 self.game_mode.draw_necessary = True
 
     def is_finished(self):
@@ -253,7 +284,7 @@ class SegmentationStep2(GameStep):
         return is_finished
 
     def finish(self):
-        self.game_mode.headline = "Great! That's it with the segmentation gamemode."
+        self.game_mode.headline = "Great! That's it with the image segmentation gamemode."
         self.game_mode.buttons['switch'].set_mode(True)
         self.game_mode.active_graph.deactivated = True
         self.game_mode.draw_necessary = True
