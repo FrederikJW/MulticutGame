@@ -76,9 +76,9 @@ class GameMode(metaclass=abc.ABCMeta):
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
         self.buttons = {}
         self.buttons.update({
-            'reset': ActionButton('Reset1', (pos_x, margin_top), (90, 40), 'red', constants.GAME_MODE_HEAD_OFFSET,
+            'reset': ActionButton('Reset Cut', (pos_x, margin_top), (90, 40), 'red', constants.GAME_MODE_HEAD_OFFSET,
                                   self.reset_graph),
-            'reset2': ActionButton('Reset2', (pos_x + 110, margin_top), (90, 40), 'red',
+            'reset2': ActionButton('Reset Group', (pos_x + 110, margin_top), (90, 40), 'red',
                                    constants.GAME_MODE_HEAD_OFFSET, partial(self.reset_graph, True)),
             'solution': Switch(pygame.image.load("assets/idea.png").convert_alpha(), (pos_x - 40 - 10, margin_top),
                                (40, 40), 'blue', constants.GAME_MODE_HEAD_OFFSET,

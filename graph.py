@@ -20,6 +20,18 @@ from utils import draw_thick_aaline, draw_cut_thick_aaline, calculate_polygon, g
 
 class GraphFactory:
     @staticmethod
+    def center_graph(graph):
+        vertex_avg_center = (0, 0)
+        for vertex in graph.vertices.values():
+            vertex_avg_center = utils.add_pos(vertex_avg_center, vertex.pos)
+        vertex_avg_center = utils.div_pos(vertex_avg_center, (len(graph.vertices), len(graph.vertices)))
+        center_difference = utils.sub_pos(graph.rec.center, vertex_avg_center)
+        for vertex in graph.vertices.values():
+            vertex.move(utils.add_pos(vertex.pos, center_difference))
+            vertex.init_pos = vertex.pos
+            vertex.group.init_pos = vertex.pos
+
+    @staticmethod
     def generate_grid(size_factor, size, seed=None, state_saving=False):
         # get weights
         num_edges = 2 * size[0] * size[1] - size[0] - size[1]
@@ -47,6 +59,8 @@ class GraphFactory:
                     graph.add_edge(i, i + size[0], weights[j])
                     j += 1
                 i += 1
+
+        GraphFactory.center_graph(graph)
 
         graph.set_unchanged()
         graph.save_state()
@@ -78,6 +92,8 @@ class GraphFactory:
                 graph.add_edge(i, j, weights[k])
                 k += 1
 
+        GraphFactory.center_graph(graph)
+
         graph.set_unchanged()
         graph.save_state()
 
@@ -100,12 +116,15 @@ class GraphFactory:
         return weights
 
     @staticmethod
-    def generate_graph_from(size_factor, vertices, edges):
+    def generate_graph_from(size_factor, vertices, edges, centralize=True):
         graph = Graph(size_factor, *(0, 0), *constants.GAME_MODE_BODY_SIZE)
         for vertex_id, pos in vertices.items():
             graph.add_vertex(Vertex(size_factor, vertex_id, pos))
         for vertex_tuple, weight in edges.items():
             graph.add_edge(*vertex_tuple, weight)
+
+        if centralize:
+            GraphFactory.center_graph(graph)
 
         graph.set_unchanged()
         graph.save_state()

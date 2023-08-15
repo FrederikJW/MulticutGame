@@ -164,7 +164,7 @@ class SegmentationStep2(GameStep):
             scaled_vertex_positions[vertex_id] = utils.add_pos(utils.round_pos(utils.mult_pos(pos, (0.2, 0.2))),
                                                                self.image_offset)
         edges = file_content['edges']
-        self.graph = GraphFactory.generate_graph_from(0.5, scaled_vertex_positions, edges)
+        self.graph = GraphFactory.generate_graph_from(0.5, scaled_vertex_positions, edges, centralize=False)
 
         self.image_overlay_colors = {}
         self.node_colors = {}
@@ -246,6 +246,8 @@ class SegmentationStep2(GameStep):
 
     def is_finished(self):
         is_finished = self.game_mode.active_graph.is_solved()
+        if self.has_finished:
+            return False
         if is_finished:
             self.has_finished = True
         return is_finished
