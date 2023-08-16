@@ -194,7 +194,8 @@ class GameMode(metaclass=abc.ABCMeta):
             return
 
         if self.buttons['movegroup'].get_mode():
-            for group in self.active_graph.groups:
+            # reversed because groups at the end are drawn on top and groups on top should hit first
+            for group in reversed(self.active_graph.groups):
                 if group.is_hit(self.graph_mouse_pos):
                     self.move_group = group
                     self.group_mouse_distance = utils.sub_pos(self.move_group.pos, self.graph_mouse_pos)
@@ -213,19 +214,21 @@ class GameMode(metaclass=abc.ABCMeta):
             self.is_cutting = True
 
     def mouse_up_event(self):
+        # if moved vertex is dropped on a group, add vertex to group
         if self.move_vertex is not None and self.active_graph is not None:
-            vertex_hit = self.active_graph.get_collided_vertex(self.move_vertex)
-            if vertex_hit is not None:
-                self.active_graph.move_vertex_to_group(self.move_vertex, vertex_hit.group)
+            group_hit = self.active_graph.get_collided_group(self.graph_mouse_pos, except_group=self.move_vertex.group)
+            if group_hit is not None:
+                self.active_graph.move_vertex_to_group(self.move_vertex, group_hit)
                 self.draw_necessary = True
             else:
                 if self.active_graph.state_saving:
                     self.active_graph.save_state()
 
+        # if moved group is dropped on another group, merge groups
         if self.move_group is not None and self.active_graph is not None:
-            overlapped_group = self.active_graph.group_overlap(self.move_group)
-            if overlapped_group is not None:
-                self.active_graph.merge_groups(self.move_group, overlapped_group)
+            group_hit = self.active_graph.get_collided_group(self.graph_mouse_pos, except_group=self.move_group)
+            if group_hit is not None:
+                self.active_graph.merge_groups(self.move_group, group_hit)
                 self.draw_necessary = True
             else:
                 if self.active_graph.state_saving:
@@ -263,15 +266,18 @@ class GameMode(metaclass=abc.ABCMeta):
         # move vertex
         if self.move_vertex is not None and self.active_graph is not None:
             self.move_vertex.group.move(self.graph_mouse_pos)
-            vertex_hit = self.active_graph.get_collided_vertex(self.move_vertex)
-            if vertex_hit is not None:
-                self.highlight_group = vertex_hit.group
+            group_hit = self.active_graph.get_collided_group(self.graph_mouse_pos, except_group=self.move_vertex.group)
+            if group_hit is not None:
+                self.highlight_group = group_hit
 
             self.draw_necessary = True
 
         # move group
         if self.move_group is not None and self.active_graph is not None:
             self.move_group.move(utils.add_pos(self.graph_mouse_pos, self.group_mouse_distance))
+            group_hit = self.active_graph.get_collided_group(self.graph_mouse_pos, except_group=self.move_group)
+            if group_hit is not None:
+                self.highlight_group = group_hit
             self.draw_necessary = True
 
         # mark hover effect

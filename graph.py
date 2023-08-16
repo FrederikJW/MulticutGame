@@ -210,6 +210,13 @@ class Graph:
                 return vertex2
         return None
 
+    def get_collided_group(self, pos, except_group=None):
+        # reversed because last groups are drawn on top and should hit first
+        for group in reversed(self.groups):
+            if group != except_group and group.is_hit(pos):
+                return group
+        return None
+
     def get_groups_by_cut(self, multicut):
         groups = []
         for vertex in self.vertices.values():
