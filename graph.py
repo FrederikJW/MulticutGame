@@ -10,6 +10,7 @@ from pygame import gfxdraw
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
+import colors
 import constants
 import utils
 from colors import *
@@ -558,7 +559,7 @@ class Group:
             gfxdraw.aacircle(surface, *vertex.pos, radius, LIGHT_BLUE)
 
         if len(self.vertices) > 1:
-            self.polygon = calculate_polygon([vertex.pos for vertex in self.vertices.values()], radius)
+            self.polygon = calculate_polygon(dict([(vertex.id, vertex.pos) for vertex in self.vertices.values()]), list(set([edge.tuple for vertex in self.vertices.values() for edge in vertex.edges.values()])), radius)
 
             gfxdraw.filled_polygon(surface, self.polygon, LIGHT_BLUE)
             gfxdraw.aapolygon(surface, self.polygon, LIGHT_BLUE)
@@ -576,6 +577,9 @@ class Vertex:
         self.edges = {}
         self.group = Group(self.size_factor, self)
         self.group.add_vertex(self)
+        font = pygame.font.SysFont('Ariel', 20)
+        self.text_surface = font.render(str(self.id), True, colors.BLACK)
+        self.text_rec = self.text_surface.get_rect()
 
     def reset(self):
         self.pos = self.init_pos
@@ -597,6 +601,9 @@ class Vertex:
     def draw(self, surface, color):
         gfxdraw.aacircle(surface, *self.pos, self.radius, color)
         gfxdraw.filled_circle(surface, *self.pos, self.radius, color)
+
+        self.text_rec.center = self.pos
+        surface.blit(self.text_surface, self.text_rec)
 
     def add_edge(self, vertex_id, edge):
         self.edges[vertex_id] = edge

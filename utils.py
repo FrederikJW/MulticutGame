@@ -38,32 +38,48 @@ def calculate_update_vector(center_new, center_old, total_nodes, relative_nodes)
     return val_x, val_y
 
 
-def calculate_polygon(points, radius):
+def calculate_polygon(points, edges, radius):
     center = np.zeros((2,))
-    for point in points:
-        center += np.array(point)
+    for point_pos in points.values():
+        center += np.array(point_pos)
     center /= len(points)
 
     distances = []
-    for point in points:
-        distances.append((point, get_distance(center, point)))
+    for point_id, point_pos in points.items():
+        distances.append((point_id, get_distance(center, point_pos)))
 
     start_point = max(distances, key=lambda x: x[1])[0]
     polygon = [start_point]
-    current_angle = get_angle(center, start_point)
+    current_angle = get_angle(center, points[start_point]) % 360
     current_point = start_point
+    prev_point = None
 
     while True:
         angles = []
-        for point in points:
-            if point == current_point:
+        for point_id, point_pos in points.items():
+            if point_id == current_point or ((current_point, point_id) not in edges
+                                             and (point_id, current_point) not in edges):
                 continue
-            angle = get_angle(current_point, point)
-            angles.append((point, angle))
 
-        angles = map(lambda x: (x[0], x[1] % 360), angles)
-        current_point, current_angle = min(angles, key=lambda x: (x[1] - current_angle) % 360)
-        polygon.append(current_point)
+            if point_id == prev_point:
+                continue
+            current_point_pos = points[current_point]
+            angle = get_angle(current_point_pos, point_pos)
+            angles.append((point_id, angle))
+
+        if len(angles) == 0:
+            # in this case there is only the path back to the previous vertex
+            current_point = prev_point
+            polygon.append(current_point)
+            current_angle = (current_angle - 180) % 360
+        else:
+            # calculate angle mod 360
+            angles = map(lambda x: (x[0], x[1] % 360), angles)
+
+            prev_point = current_point
+            current_point, current_angle = min(angles, key=lambda x: (x[1] - current_angle) % 360 if (x[1] - current_angle) % 360 != 0 else 360)
+            current_angle = (current_angle - 180) % 360
+            polygon.append(current_point)
 
         if current_point == start_point:
             break
@@ -71,8 +87,8 @@ def calculate_polygon(points, radius):
     rounded_polygon = []
 
     for i in range(len(polygon) - 1):
-        current_point = np.array(polygon[i])
-        next_point = np.array(polygon[i + 1])
+        current_point = np.array(points[polygon[i]])
+        next_point = np.array(points[polygon[i + 1]])
         centerx, centery = tuple((current_point + next_point) / 2)
         length = math.hypot(*(current_point - next_point))
         angle = math.atan2(current_point[1] - next_point[1], current_point[0] - next_point[0])
@@ -91,6 +107,15 @@ def calculate_polygon(points, radius):
 
         rounded_polygon.append(ul)
         rounded_polygon.append(ur)
+
+    i = 0
+    while i <= len(rounded_polygon) - 4:
+        intersection = line_line_intersect(rounded_polygon[i], rounded_polygon[i+1], rounded_polygon[i+2], rounded_polygon[i+3])
+        if intersection is not None:
+            rounded_polygon.pop(i+1)
+            rounded_polygon.pop(i+1)
+            rounded_polygon.insert(i+1, intersection)
+        i += 1
 
     return tuple(rounded_polygon)
 
