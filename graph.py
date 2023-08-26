@@ -240,10 +240,12 @@ class Graph:
             i += 1
         return vertices
 
-    def get_connected_vertices(self, vertex, multicut):
+    def get_connected_vertices(self, vertex, multicut=None):
         connected_vertices = []
         for edge in self.edges:
-            if edge.tuple in multicut:
+            if multicut is not None and edge.tuple in multicut:
+                continue
+            elif edge.is_cut():
                 continue
             if edge.vertex1 == vertex:
                 connected_vertices.append(edge.vertex2)
@@ -262,8 +264,20 @@ class Graph:
         return None
 
     def merge_groups(self, group1, group2):
+        connected = False
+        for edge in self.edges:
+            if (edge.vertex1.group == group1 and edge.vertex2.group == group2) or (edge.vertex1.group == group2 and edge.vertex2.group == group1):
+                connected = True
+                break
+        if not connected:
+            return
+
         for vertex in list(group1.vertices.values()):
-            self.move_vertex_to_group(vertex, group2)
+            vertex.group = group2
+            group2.add_vertex(vertex)
+
+        group2.calculate_pos()
+        self.groups.remove(group1)
         self._has_changed = True
 
     def get_nx_graph(self):
@@ -358,10 +372,52 @@ class Graph:
         return self.vertices.get(vertex_id)
 
     def move_vertex_to_group(self, vertex, group):
+        if group is not None:
+            # a vertex should not be moved to a group it is not connected to the group
+            connected = False
+            for edge in vertex.edges.values():
+                if edge.vertex1 == vertex and edge.vertex2.group == group:
+                    connected = True
+                    break
+                elif edge.vertex2 == vertex and edge.vertex1.group == group:
+                    connected = True
+                    break
+            if not connected:
+                return
+
+        # create the future multicut to check if new groups need to be created
+        new_multicut = self.get_multicut()
+        for edge in vertex.edges.values():
+            if edge.vertex1 == vertex:
+                if edge.vertex2.group != group:
+                    new_multicut.append(edge.tuple)
+                else:
+                    new_multicut.remove(edge.tuple)
+            if edge.vertex2 == vertex:
+                if edge.vertex1.group != group:
+                    new_multicut.append(edge.tuple)
+                else:
+                    new_multicut.remove(edge.tuple)
+
         group_old = vertex.group
         group_old.remove_vertex(vertex)
         if len(group_old.vertices) == 0:
             self.groups.remove(group_old)
+        elif len(group_old.vertices.values()) != len(self.get_group_by_cut(list(group_old.vertices.values())[0], new_multicut)):
+            # if the vertices from the old group are not connected anymore after removing the vertex, the group needs
+            # to be split up into new groups
+            left_over_vertices = set(group_old.vertices.values())
+            self.groups.remove(group_old)
+            while len(left_over_vertices) > 0:
+                new_vertex = left_over_vertices.pop()
+                connected_vertices = self.get_group_by_cut(new_vertex, new_multicut)
+                new_group = Group(self.size_factor, new_vertex)
+                for connected_vertex in connected_vertices:
+                    connected_vertex.group = new_group
+                    new_group.add_vertex(connected_vertex)
+                self.groups.append(new_group)
+                new_group.calculate_pos()
+                left_over_vertices.difference_update(set(connected_vertices))
 
         if group is None:
             group = Group(self.size_factor, vertex)
@@ -419,6 +475,13 @@ class Graph:
         for vertex in self.vertices.values():
             color = self.vertices_color[vertex.id] if self.optimal_score is not None and show_solution else DARK_BLUE
             vertex.draw(self.surface, color)
+
+    def get_multicut(self):
+        multicut = []
+        for edge in self.edges:
+            if edge.is_cut():
+                multicut.append(edge.tuple)
+        return multicut
 
     def objects(self):
         return self.surface, self.rec
@@ -602,8 +665,8 @@ class Vertex:
         gfxdraw.aacircle(surface, *self.pos, self.radius, color)
         gfxdraw.filled_circle(surface, *self.pos, self.radius, color)
 
-        self.text_rec.center = self.pos
-        surface.blit(self.text_surface, self.text_rec)
+        # self.text_rec.center = self.pos
+        # surface.blit(self.text_surface, self.text_rec)
 
     def add_edge(self, vertex_id, edge):
         self.edges[vertex_id] = edge
