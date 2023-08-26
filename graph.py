@@ -240,12 +240,10 @@ class Graph:
             i += 1
         return vertices
 
-    def get_connected_vertices(self, vertex, multicut=None):
+    def get_connected_vertices(self, vertex, multicut):
         connected_vertices = []
         for edge in self.edges:
-            if multicut is not None and edge.tuple in multicut:
-                continue
-            elif edge.is_cut():
+            if edge.tuple in multicut:
                 continue
             if edge.vertex1 == vertex:
                 connected_vertices.append(edge.vertex2)
