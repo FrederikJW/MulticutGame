@@ -18,7 +18,9 @@ class MulticutGame:
 
         # Set up font
         self.font = pygame.font.SysFont('Ariel', 32)
-        self.text = self.font.render("0", True, colors.BLACK)
+        loading_text = self.font.render("Loading... Please wait!", True, colors.BLACK)
+        loading_text_rec = loading_text.get_rect()
+        loading_text_rec.center = utils.round_pos(utils.div_pos(constants.SCREEN_SIZE, (2, 2)))
 
         # Set up screen
         self.screen_size = constants.SCREEN_SIZE
@@ -26,6 +28,7 @@ class MulticutGame:
         pygame.display.set_caption("Multicut Game")
 
         self.screen.fill(colors.WHITE)
+        self.screen.blit(loading_text, loading_text_rec)
         self.surface = pygame.Surface(self.screen_size)
         self.surface.fill(colors.WHITE)
         pygame.display.update()
