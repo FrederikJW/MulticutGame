@@ -1,16 +1,7 @@
-import gettext
-import os
-
 import constants
 from button import ActionButton
 from graph import GraphFactory
 from .game_mode import GameMode
-
-localedir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'locale')
-de = gettext.translation('base', localedir, languages=['de'])
-de.install()
-
-_ = de.gettext
 
 
 class ClassicGameMode(GameMode):
@@ -30,7 +21,7 @@ class ClassicGameMode(GameMode):
         margin_right = constants.GAME_MODE_MARGIN
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.update({'regenerate': ActionButton(_('Regenerate'), (pos_x, margin_top + 50), size, 'red',
+        self.buttons.update({'regenerate': ActionButton('Regenerate', (pos_x, margin_top + 50), size, 'red',
                                                         constants.GAME_MODE_HEAD_OFFSET, self.regenerate_graph)})
         self.headline = 'Try it!'
 

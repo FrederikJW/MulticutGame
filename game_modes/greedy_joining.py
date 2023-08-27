@@ -1,15 +1,7 @@
-import gettext
-import os
 import time
 
 from graph import GraphFactory
 from .game_mode import GameMode
-
-localedir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'locale')
-de = gettext.translation('base', localedir, languages=['de'])
-de.install()
-
-_ = de.gettext
 
 
 class GreedyJoining(GameMode):

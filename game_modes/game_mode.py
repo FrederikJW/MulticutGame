@@ -1,5 +1,4 @@
 import abc
-import gettext
 import os
 from functools import partial
 
@@ -11,13 +10,7 @@ import constants
 import utils
 from button import ActionButton, Switch
 from utils import sub_pos, get_distance
-
-localedir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'locale')
-de = gettext.translation('base', localedir, languages=['de'])
-de.install()
-
-_ = de.gettext
-
+from definitions import ROOT_DIR
 
 # abstract game mode class
 class GameMode(metaclass=abc.ABCMeta):
@@ -80,12 +73,12 @@ class GameMode(metaclass=abc.ABCMeta):
                                   self.reset_graph),
             'reset2': ActionButton('Reset Group', (pos_x + 110, margin_top), (90, 40), 'red',
                                    constants.GAME_MODE_HEAD_OFFSET, partial(self.reset_graph, True)),
-            'solution': Switch(pygame.image.load("assets/idea.png").convert_alpha(), (pos_x - 40 - 10, margin_top),
+            'solution': Switch(pygame.image.load(os.path.join(ROOT_DIR, "assets", "idea.png")).convert_alpha(), (pos_x - 40 - 10, margin_top),
                                (40, 40), 'blue', constants.GAME_MODE_HEAD_OFFSET,
-                               second_label=pygame.image.load("assets/ideaOn.png").convert_alpha()),
-            'movegroup': Switch(pygame.image.load("assets/singleNode.png").convert_alpha(),
+                               second_label=pygame.image.load(os.path.join(ROOT_DIR, "assets", "ideaOn.png")).convert_alpha()),
+            'movegroup': Switch(pygame.image.load(os.path.join(ROOT_DIR, "assets", "singleNode.png")).convert_alpha(),
                                 (pos_x - 80 - 20, margin_top), (40, 40), 'blue',
-                                second_label=pygame.image.load("assets/group.png").convert_alpha())})
+                                second_label=pygame.image.load(os.path.join(ROOT_DIR, "assets", "group.png")).convert_alpha())})
 
     def reset_graph(self, one_group=False):
         if self.active_graph is not None:
@@ -121,19 +114,19 @@ class GameMode(metaclass=abc.ABCMeta):
             score = self.active_graph.get_score()
             optimal_score = self.active_graph.optimal_score
             if optimal_score is None:
-                optimal_score = _("calculating")
+                optimal_score = "calculating"
             else:
                 optimal_score = str(round(optimal_score))
         else:
             score = ''
             optimal_score = ''
 
-        score_surface = self.font.render(_('Score') + f" = {score}", True, colors.BLACK)
+        score_surface = self.font.render('Score' + f" = {score}", True, colors.BLACK)
         score_rec = score_surface.get_rect()
         score_rec = score_surface.get_rect().move(
             (constants.GAME_MODE_MARGIN, constants.GAME_MODE_HEAD_SIZE[1] - constants.GAME_MODE_MARGIN - score_rec.height))
 
-        optimal_score_surface = self.font.render(_('Optimal Score') + f" = {optimal_score}", True, colors.BLACK)
+        optimal_score_surface = self.font.render('Optimal Score' + f" = {optimal_score}", True, colors.BLACK)
         optimal_score_rec = optimal_score_surface.get_rect().move(
             (score_rec.x + score_rec.width + constants.GAME_MODE_MARGIN, score_rec.y))
 

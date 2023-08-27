@@ -1,16 +1,6 @@
-import abc
-import gettext
-import os
-
 import constants
 from button import ActionButton
 from .game_mode import GameMode
-
-localedir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'locale')
-de = gettext.translation('base', localedir, languages=['de'])
-de.install()
-
-_ = de.gettext
 
 
 class WalkthroughGameMode(GameMode):
@@ -24,9 +14,9 @@ class WalkthroughGameMode(GameMode):
         margin_right = constants.GAME_MODE_MARGIN
         size = (90, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.update({'previous': ActionButton(_('<'), (pos_x - size[0] - 20, margin_top + 50), size, 'red',
+        self.buttons.update({'previous': ActionButton('<', (pos_x - size[0] - 20, margin_top + 50), size, 'red',
                                                       self.game_mode_offset, self.previous_step),
-                             'next': ActionButton(_('>'), (pos_x, margin_top + 50), size, 'green',
+                             'next': ActionButton('>', (pos_x, margin_top + 50), size, 'green',
                                                   self.game_mode_offset, self.next_step), })
 
         # init graphs
