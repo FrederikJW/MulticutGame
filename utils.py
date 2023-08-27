@@ -8,6 +8,7 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
 import constants
+import utils
 
 
 def generate_distinct_colors(n):
@@ -71,7 +72,7 @@ def calculate_polygon(points, edges, radius):
 
         if len(angles) == 0:
             # in this case there is only the path back to the previous vertex
-            current_point = prev_point
+            current_point, prev_point = prev_point, current_point
             polygon.append(current_point)
             current_angle = (current_angle - 180) % 360
         else:
@@ -126,7 +127,8 @@ def calculate_polygon(points, edges, radius):
         if intersection is not None:
             rounded_polygon.pop(i+1)
             rounded_polygon.pop(i+1)
-            rounded_polygon.insert(i+1, intersection)
+            rounded_polygon.insert(i+1, utils.round_pos(intersection))
+            continue
         i += 1
 
     return tuple(rounded_polygon)
