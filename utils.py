@@ -4,6 +4,8 @@ import math
 import numpy as np
 import pygame
 from pygame import gfxdraw
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
 import constants
 
@@ -82,7 +84,17 @@ def calculate_polygon(points, edges, radius):
             polygon.append(current_point)
 
         if current_point == start_point:
-            break
+            polygon_points = [points[vertex_id] for vertex_id in polygon]
+            polygon_obj = Polygon(polygon_points)
+            finished = True
+            for point in points.values():
+                if not (polygon_obj.contains(Point(*point)) or point in polygon_points):
+                    finished = False
+                    break
+            if finished:
+                break
+            else:
+                continue
 
     rounded_polygon = []
 
