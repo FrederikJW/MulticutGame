@@ -9,7 +9,11 @@ class GreedyJoining(GameMode):
         super().__init__(size_factor)
 
         self.active_graph = GraphFactory.generate_grid(self.size_factor, (5, 5), state_saving=True)
-        self.standard_headline = 'In greedy joining you join those groups that improve your score the most. Try it!'
+        self.standard_headline = ('Greedy joining is an algorithm to get a good solution in short time. Greedy joining '
+                                  'works by joining those groups which improve your score the most. There can also be '
+                                  'multiple best joining moves. In this case you can select one by random. You do not '
+                                  'need to find the best solution yet, just try to follow and understand the '
+                                  'algorithm.')
         self.headline_change_timestamp = None
         self.draw_necessary = True
         self.free_mode = False
@@ -40,7 +44,8 @@ class GreedyJoining(GameMode):
             elif self.active_graph.get_best_score_improvement() == 0:
                 self.standard_headline = ('Great! You followed the algorithm correctly and there is no more joining '
                                           'move left that could improve your score. Note that in this case the '
-                                          'algorithm could not find the optimal solution. Can you find it?')
+                                          'algorithm could not find the optimal solution. You can now move freely and '
+                                          'try to find the best solution.')
                 self.headline = self.standard_headline
                 self.headline_change_timestamp = time.time()
                 self.free_mode = True

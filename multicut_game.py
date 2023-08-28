@@ -61,8 +61,10 @@ class MulticutGame:
                                          action_func=partial(self.change_game_mode, 'imagesegmentation')))
         self.buttons.append(ActionButton('Greedy Joining', (margin_left, 490), size, 'blue',
                                          action_func=partial(self.change_game_mode, 'greedyjoining')))
-        self.buttons.append(ActionButton('Empty', (margin_left, 540), size, 'blue'))
-        self.buttons.append(ActionButton('Empty', (margin_left, 590), size, 'blue'))
+        self.buttons.append(ActionButton('', (margin_left, 540), size, 'blue'))
+        self.buttons[-1].deactivate()
+        self.buttons.append(ActionButton('', (margin_left, 590), size, 'blue'))
+        self.buttons[-1].deactivate()
         self.buttons.append(ActionButton('Quit', (margin_left, 640), size, 'red', action_func=self.quit))
 
     def change_game_mode(self, game_mode):

@@ -12,6 +12,7 @@ from button import ActionButton, Switch
 from utils import sub_pos, get_distance
 from definitions import ROOT_DIR
 
+
 # abstract game mode class
 class GameMode(metaclass=abc.ABCMeta):
 

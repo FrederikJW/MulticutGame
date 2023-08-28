@@ -76,17 +76,16 @@ class SegmentationStep1(GameStep):
                 self.edge_line_map[(i - 10, i)] = (pos1, pos2)
 
     def enter(self):
-        self.game_mode.standard_headline = ("One possible usecase for the multicut minimization problem is image "
+        self.game_mode.standard_headline = ("One possible use case for the multicut minimization problem is image "
                                             "segmentation where an image is split into related parts. In the first "
-                                            "example we want to split the Tree from the sky and the ground. You can see"
+                                            "example we want to split the tree from the sky and the ground. You can see "
                                             "the image and your current progress if you click on the button with the "
                                             "image icon on the right. Try to solve it.")
         self.game_mode.headline = self.game_mode.standard_headline
         self.game_mode.set_active_graph(0)
         self.game_mode.active_graph.reset_to_one_group()
         self.game_mode.buttons['previous'].deactivate()
-        # TODO: just for testing. change this to deactivate
-        self.game_mode.buttons['next'].activate()
+        self.game_mode.buttons['next'].deactivate()
         self.game_mode.buttons['reset'].hide()
         self.game_mode.show_points = False
 

@@ -139,7 +139,7 @@ class TutorialStep4(GameStep):
         self.has_finished = False
 
     def enter(self):
-        self.game_mode.standard_headline = ("The one button on the left lets you switch to group mode where you can "
+        self.game_mode.standard_headline = ("The one button on the right lets you switch to group mode where you can "
                                             "move and merge whole groups instead of single vertices. If you can't "
                                             "solve a graph there is the other button which shows the solution. Try "
                                             "them out by solving this graph.")
