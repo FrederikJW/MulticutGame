@@ -19,13 +19,12 @@ class GreedyJoining(GameMode):
         self.free_mode = False
         self.change_all_buttons('show')
         self.change_all_buttons('activate')
-        self.buttons['reset2'].hide()
+        self.buttons['reset'].deactivate()
+        self.buttons['reset2'].deactivate()
 
-    def reset_graph(self, one_group=False):
-        self.standard_headline = 'In greedy joining you join those groups that improve your score the most. Try it!'
-        self.headline = self.standard_headline
+    def reset_graph(self, one_group=False, reset_game_mode=True):
         self.free_mode = False
-        super().reset_graph(one_group)
+        super().reset_graph(one_group, False)
 
     def graph_solved_event(self):
         pass
@@ -40,7 +39,8 @@ class GreedyJoining(GameMode):
         if self.active_graph.has_changed:
             if self.active_graph.get_score() == self.active_graph.optimal_score:
                 self.active_graph.deactivated = True
-                self.headline = 'Great! You solved it.'
+                self.standard_headline = 'Great! You solved it.'
+                self.headline = self.standard_headline
             elif self.active_graph.get_best_score_improvement() == 0:
                 self.standard_headline = ('Great! You followed the algorithm correctly and there is no more joining '
                                           'move left that could improve your score. Note that in this case the '
@@ -50,6 +50,8 @@ class GreedyJoining(GameMode):
                 self.headline_change_timestamp = time.time()
                 self.free_mode = True
                 self.draw_necessary = True
+                self.change_all_buttons('show')
+                self.change_all_buttons('activate')
             elif ((not self.free_mode) and
                   self.active_graph.get_score() - self.active_graph.prev_state.get_score() >
                   self.active_graph.prev_state.get_best_score_improvement()):

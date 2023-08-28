@@ -83,13 +83,15 @@ class GameMode(metaclass=abc.ABCMeta):
                                 (pos_x - 80 - 20, margin_top), (40, 40), 'blue',
                                 second_label=pygame.image.load(os.path.join(ROOT_DIR, "assets", "group.png")).convert_alpha())})
 
-    def reset_graph(self, one_group=False):
+    def reset_graph(self, one_group=False, reset_game_mode=True):
         if self.active_graph is not None:
             if one_group:
                 self.active_graph.reset_to_one_group()
             else:
                 self.active_graph.reset()
-        self.reset_game_mode()
+
+        if reset_game_mode:
+            self.reset_game_mode()
 
     def reset_game_mode(self):
         self.headline = self.standard_headline
