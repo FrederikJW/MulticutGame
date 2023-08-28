@@ -343,12 +343,13 @@ class Graph:
                 old_group_total_nodes_by_group[new_group] = old_group_total_nodes_by_vertex[vertex.id]
                 groups.remove(group)
 
-        for group, old_center in old_group_center_pos_by_group.items():
-            old_total_nodes = old_group_total_nodes_by_group[group]
-            update_vector = utils.calculate_update_vector(group.get_center(), old_center, old_total_nodes,
-                                                          len(group.vertices) / old_total_nodes)
-            update_vector = (update_vector[0] * self.size_factor, update_vector[1] * self.size_factor)
-            group.move(utils.add_pos(group.pos, update_vector))
+        if constants.CUT_AUTO_GAP:
+            for group, old_center in old_group_center_pos_by_group.items():
+                old_total_nodes = old_group_total_nodes_by_group[group]
+                update_vector = utils.calculate_update_vector(group.get_center(), old_center, old_total_nodes,
+                                                              len(group.vertices) / old_total_nodes)
+                update_vector = (update_vector[0] * self.size_factor, update_vector[1] * self.size_factor)
+                group.move(utils.add_pos(group.pos, update_vector))
 
         self._has_changed = True
 
@@ -578,7 +579,7 @@ class Group:
         self.rel_pos = {}
 
         for vertex in self.vertices.values():
-            rel_pos = (numpy.array(vertex.init_pos) - self.init_pos) / 2
+            rel_pos = (numpy.array(vertex.init_pos) - self.init_pos) * 0.7
             self.rel_pos[vertex] = rel_pos
             total_pos = [round(n) for n in (numpy.array(self.pos) + self.rel_pos[vertex])]
 
