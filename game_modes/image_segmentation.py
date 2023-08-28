@@ -84,9 +84,11 @@ class SegmentationStep1(GameStep):
         self.game_mode.headline = self.game_mode.standard_headline
         self.game_mode.set_active_graph(0)
         self.game_mode.active_graph.reset_to_one_group()
+        self.game_mode.change_all_buttons('show')
+        self.game_mode.change_all_buttons('activate')
+        self.game_mode.buttons['switch'].switch_mode = False
         self.game_mode.buttons['previous'].deactivate()
         self.game_mode.buttons['next'].deactivate()
-        self.game_mode.buttons['reset'].hide()
         self.game_mode.show_points = False
 
         if self.has_finished:
@@ -99,9 +101,6 @@ class SegmentationStep1(GameStep):
 
         if self.game_mode.show_image:
             self.game_mode.body_surface.blit(self.image, self.image_offset)
-            # for i, rect in enumerate(self.image_overlay_rects):
-            #     color = self.image_overlay_colors[self.game_mode.active_graph.vertices[i].group]
-            #     pygame.draw.rect(self.image_overlay_surface, color, rect)
             self.image_overlay_surface.fill(colors.COLOR_KEY)
             for edge in self.game_mode.active_graph.edges:
                 if edge.is_cut():
@@ -114,6 +113,8 @@ class SegmentationStep1(GameStep):
 
     def is_finished(self):
         is_finished = self.game_mode.active_graph.is_solved()
+        if self.has_finished:
+            return False
         if is_finished:
             self.has_finished = True
         return is_finished
@@ -122,6 +123,7 @@ class SegmentationStep1(GameStep):
         self.game_mode.headline = ("Great you solved it. You can see below how solving the graph split the image into "
                                    "parts seperated by red lines. Click on next to do the next image.")
         self.game_mode.buttons['switch'].set_mode(True)
+        self.game_mode.buttons['next'].activate()
         self.game_mode.active_graph.deactivated = True
         self.game_mode.draw_necessary = True
 
@@ -188,7 +190,6 @@ class SegmentationStep2(GameStep):
                                             "image button one the right.")
         self.game_mode.headline = self.game_mode.standard_headline
 
-        self.game_mode.buttons['switch'].switch_mode = False
         self.enter_timestamp = time.time()
         self.prev_timestamp = time.time()
         self.animation_finished = False
@@ -200,17 +201,16 @@ class SegmentationStep2(GameStep):
 
         self.game_mode.active_graph = self.graph
         self.game_mode.active_graph.reset()
-        self.game_mode.buttons['previous'].activate()
-        self.game_mode.buttons['next'].deactivate()
+
+        self.game_mode.change_all_buttons('show')
+        self.game_mode.change_all_buttons('deactivate')
+        self.game_mode.buttons['switch'].switch_mode = False
         self.game_mode.show_points = True
 
         if self.has_finished:
             self.game_mode.buttons['next'].activate()
 
     def draw(self):
-        if not self.game_mode.show_image and self.animation_finished:
-            return
-
         if len(self.image_overlay_colors) != len(self.game_mode.active_graph.groups) or self.animation_redraw_overlay:
             self.animation_redraw_overlay = False
             distinct_colors = list(set(utils.generate_distinct_colors(len(self.game_mode.active_graph.groups))))
@@ -232,6 +232,9 @@ class SegmentationStep2(GameStep):
             self.overlay_surface = pygame.transform.scale(utils.ndarray_to_surface(self.overlay_image), self.image_size)
             self.overlay_surface.set_colorkey(colors.COLOR_KEY)
             self.overlay_surface.set_alpha(200)
+
+        if not self.game_mode.show_image and self.animation_finished:
+            return
 
         if self.animation_finished or self.show_image:
             self.game_mode.body_surface.blit(self.image, self.image_offset)
@@ -267,6 +270,8 @@ class SegmentationStep2(GameStep):
                 self.show_overlay = False
                 self.animation_finished = True
                 self.game_mode.draw_necessary = True
+                self.game_mode.change_all_buttons('activate')
+                self.game_mode.buttons['next'].deactivate()
 
     def is_finished(self):
         is_finished = self.game_mode.active_graph.is_solved()
@@ -281,6 +286,3 @@ class SegmentationStep2(GameStep):
         self.game_mode.buttons['switch'].set_mode(True)
         self.game_mode.active_graph.deactivated = True
         self.game_mode.draw_necessary = True
-
-    def exit(self):
-        self.game_mode.buttons['previous'].activate()

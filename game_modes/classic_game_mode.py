@@ -16,6 +16,8 @@ class ClassicGameMode(GameMode):
         elif graph_type == 'pentagram':
             self.active_graph = GraphFactory.generate_complete_graph(self.size_factor, 5)
 
+        self.active_graph.reset_to_one_group()
+
         # init buttons
         margin_top = constants.GAME_MODE_MARGIN
         margin_right = constants.GAME_MODE_MARGIN
@@ -30,9 +32,11 @@ class ClassicGameMode(GameMode):
             self.active_graph = GraphFactory.generate_grid(self.size_factor, (self.graph_width, self.graph_height))
         elif self.graph_type == 'pentagram':
             self.active_graph = GraphFactory.generate_complete_graph(self.size_factor, 5)
-        self.score_drawn = False
+
+        self.reset_graph(True)
 
     def graph_solved_event(self):
+        super().graph_solved_event()
         self.headline = 'Great you solved it!'
 
     def switch_to(self):

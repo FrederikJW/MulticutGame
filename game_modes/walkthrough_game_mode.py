@@ -1,4 +1,8 @@
 import constants
+import pygame
+import os
+
+from definitions import ROOT_DIR
 from button import ActionButton
 from .game_mode import GameMode
 
@@ -12,10 +16,12 @@ class WalkthroughGameMode(GameMode):
         # init buttons
         margin_top = constants.GAME_MODE_MARGIN
         margin_right = constants.GAME_MODE_MARGIN
-        size = (90, 40)
+        size = (40, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.update({'previous': ActionButton('<', (pos_x - size[0] - 20, margin_top + 50), size, 'red',
+        self.buttons.update({'previous': ActionButton('<', (pos_x - size[0] - 120, margin_top + 50), size, 'red',
                                                       self.game_mode_offset, self.previous_step),
+                             'reenter': ActionButton(pygame.image.load(os.path.join(ROOT_DIR, "assets", "repeat.png")).convert_alpha(), (pos_x - size[0] - 40, margin_top + 50), size, 'red',
+                                                      self.game_mode_offset, self.reenter),
                              'next': ActionButton('>', (pos_x, margin_top + 50), size, 'green',
                                                   self.game_mode_offset, self.next_step), })
 
@@ -63,6 +69,10 @@ class WalkthroughGameMode(GameMode):
 
     def exit(self):
         pass
+
+    def reenter(self):
+        if self.current_step is not None:
+            self.current_step.enter()
 
 
 class GameStepIterator:

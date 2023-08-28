@@ -63,6 +63,8 @@ class GameMode(metaclass=abc.ABCMeta):
 
         self.draw_necessary = True
 
+        self.was_solved = False
+
         # init buttons
         margin_top = constants.GAME_MODE_MARGIN
         margin_right = constants.GAME_MODE_MARGIN
@@ -87,7 +89,12 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.active_graph.reset_to_one_group()
             else:
                 self.active_graph.reset()
+        self.reset_game_mode()
+
+    def reset_game_mode(self):
         self.headline = self.standard_headline
+        self.was_solved = False
+        self.score_drawn = False
 
     def change_all_buttons(self, action):
         for button in self.buttons.values():
@@ -254,7 +261,8 @@ class GameMode(metaclass=abc.ABCMeta):
                 self.mouse_down_event()
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.mouse_up_event()
-        if self.active_graph is not None and self.active_graph.is_solved():
+        if self.active_graph is not None and self.active_graph.is_solved() and not self.was_solved:
+            self.was_solved = True
             self.graph_solved_event()
 
         # move vertex
@@ -300,9 +308,9 @@ class GameMode(metaclass=abc.ABCMeta):
 
         self._draw_wrapper()
 
-    @abc.abstractmethod
     def graph_solved_event(self):
-        pass
+        self.active_graph.deactivated = True
+        self.draw_necessary = True
 
     @abc.abstractmethod
     def draw(self):
