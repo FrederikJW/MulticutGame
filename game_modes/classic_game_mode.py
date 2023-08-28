@@ -15,6 +15,8 @@ class ClassicGameMode(GameMode):
             self.active_graph = GraphFactory.generate_grid(self.size_factor, (self.graph_width, self.graph_height))
         elif graph_type == 'pentagram':
             self.active_graph = GraphFactory.generate_complete_graph(self.size_factor, 5)
+        elif graph_type == 'petersen':
+            self.active_graph = GraphFactory.generate_petersen_graph()
 
         self.active_graph.reset_to_one_group()
 
@@ -32,6 +34,8 @@ class ClassicGameMode(GameMode):
             self.active_graph = GraphFactory.generate_grid(self.size_factor, (self.graph_width, self.graph_height))
         elif self.graph_type == 'pentagram':
             self.active_graph = GraphFactory.generate_complete_graph(self.size_factor, 5)
+        elif self.graph_type == 'petersen':
+            self.active_graph = GraphFactory.generate_petersen_graph()
 
         self.reset_graph(True)
 

@@ -40,7 +40,7 @@ class MulticutGame:
 
         self.game_modes = {'tutorial': Tutorial(), 'level1': ClassicGameMode('grid', 4, 4),
                            'level2': ClassicGameMode('grid', 5, 5), 'level3': ClassicGameMode('pentagram'),
-                           'stresstest': ClassicGameMode('grid', 10, 10, 0.5), 'imagesegmentation': ImageSegmentation(),
+                           'stresstest': ClassicGameMode('petersen', 10, 10, 0.5), 'imagesegmentation': ImageSegmentation(),
                            'greedyjoining': GreedyJoining(), }
 
     def init_buttons(self):

@@ -104,6 +104,50 @@ class GraphFactory:
         return graph
 
     @staticmethod
+    def generate_petersen_graph():
+        size_factor = 1
+        size = 5
+        weights = GraphFactory.get_weights(15)
+
+        graph = Graph(1, *(0, 0), *constants.GAME_MODE_BODY_SIZE)
+
+        angle_distance = 360 / size
+        inner_radius = constants.GRAPH_PENTAGRAM_RADIUS
+        outer_radius = constants.GRAPH_PENTAGRAM_RADIUS + 130
+        center = ((constants.GRAPH_RELATIVE_OFFSET[0] + inner_radius) * size_factor,
+                  (constants.GRAPH_RELATIVE_OFFSET[1] + inner_radius) * size_factor)
+
+        vertex_id = 0
+        k = 0
+
+        for i in range(size):
+            x = inner_radius * (math.sin(math.pi * 2 * (angle_distance * i) / 360)) + center[0]
+            y = -(inner_radius * (math.cos(math.pi * 2 * (angle_distance * i) / 360))) + center[1]
+            graph.add_vertex(Vertex(size_factor, vertex_id, (x, y)))
+            vertex_id += 1
+            x = outer_radius * (math.sin(math.pi * 2 * (angle_distance * i) / 360)) + center[0]
+            y = -(outer_radius * (math.cos(math.pi * 2 * (angle_distance * i) / 360))) + center[1]
+            graph.add_vertex(Vertex(size_factor, vertex_id, (x, y)))
+            graph.add_edge(vertex_id - 1, vertex_id, weights[k])
+            k += 1
+            vertex_id += 1
+
+        edges = [(1, 3), (3, 5), (5, 7), (7, 9), (9, 1), (0, 4), (4, 8), (8, 2), (2, 6), (6, 0)]
+        for vertex1, vertex2 in edges:
+            graph.add_edge(vertex1, vertex2, weights[k])
+            k += 1
+
+        GraphFactory.center_graph(graph)
+
+        graph.set_unchanged()
+        graph.save_state()
+
+        # calculating optimal solution is done in a new thread so the game can continue
+        my_thread = threading.Thread(target=graph.calculate_solution)
+        my_thread.start()
+        return graph
+
+    @staticmethod
     def get_weights(num_edges, seed=None):
         weights = []
         if seed is None:
