@@ -81,6 +81,8 @@ class GraphFactory:
 
         angle_distance = 360 / size
         radius = constants.GRAPH_PENTAGRAM_RADIUS
+        if size > 5:
+            radius += (size - 5) * 20
         center = ((constants.GRAPH_RELATIVE_OFFSET[0] + radius) * size_factor,
                   (constants.GRAPH_RELATIVE_OFFSET[1] + radius) * size_factor)
 

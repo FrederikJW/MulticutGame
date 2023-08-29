@@ -7,7 +7,7 @@ import colors
 import constants
 import utils
 from button import ActionButton
-from game_modes import ClassicGameMode, Tutorial, ImageSegmentation, GreedyJoining
+from game_modes import ClassicGameMode, Tutorial, ImageSegmentation, GreedyJoining, GridGraphMode, CompleteGraphMode
 from utils import sub_pos
 
 
@@ -38,9 +38,11 @@ class MulticutGame:
         self.current_game_mode = None
         self.init_buttons()
 
-        self.game_modes = {'tutorial': Tutorial(), 'level1': ClassicGameMode('grid', 4, 4),
-                           'level2': ClassicGameMode('grid', 5, 5), 'level3': ClassicGameMode('pentagram'),
-                           'stresstest': ClassicGameMode('petersen', 10, 10, 0.5), 'imagesegmentation': ImageSegmentation(),
+        self.game_modes = {'tutorial': Tutorial(),
+                           'grid': GridGraphMode(),
+                           'complete': CompleteGraphMode(),
+                           'petersen': ClassicGameMode('petersen', 10, 10, 0.5),
+                           'imagesegmentation': ImageSegmentation(),
                            'greedyjoining': GreedyJoining(), }
 
     def init_buttons(self):
@@ -49,14 +51,14 @@ class MulticutGame:
         size = (constants.GAME_MODE_SCREEN_OFFSET[0] - (margin_right + margin_left), 40)
         self.buttons.append(ActionButton('Tutorial', (margin_left, 190), size, 'blue',
                                          action_func=partial(self.change_game_mode, 'tutorial')))
-        self.buttons.append(ActionButton('Level' + " 1", (margin_left, 240), size, 'blue',
-                                         action_func=partial(self.change_game_mode, 'level1')))
-        self.buttons.append(ActionButton('Level' + " 2", (margin_left, 290), size, 'blue',
-                                         action_func=partial(self.change_game_mode, 'level2')))
-        self.buttons.append(ActionButton('Level' + " 3", (margin_left, 340), size, 'blue',
-                                         action_func=partial(self.change_game_mode, 'level3')))
-        self.buttons.append(ActionButton('Stresstest', (margin_left, 390), size, 'blue',
-                                         action_func=partial(self.change_game_mode, 'stresstest')))
+        self.buttons.append(ActionButton("Grid Graphs", (margin_left, 240), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'grid')))
+        self.buttons.append(ActionButton("Complete Graphs", (margin_left, 290), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'complete')))
+        self.buttons.append(ActionButton("Petersen Graph", (margin_left, 340), size, 'blue',
+                                         action_func=partial(self.change_game_mode, 'petersen')))
+        self.buttons.append(ActionButton('', (margin_left, 390), size, 'blue'))
+        self.buttons[-1].deactivate()
         self.buttons.append(ActionButton('Image Segmentation', (margin_left, 440), size, 'blue',
                                          action_func=partial(self.change_game_mode, 'imagesegmentation')))
         self.buttons.append(ActionButton('Greedy Joining', (margin_left, 490), size, 'blue',
