@@ -109,7 +109,7 @@ class GraphFactory:
         size = 5
         weights = GraphFactory.get_weights(15)
 
-        graph = Graph(1, *(0, 0), *constants.GAME_MODE_BODY_SIZE)
+        graph = Graph(1, *(0, 0), *constants.GAME_MODE_BODY_SIZE, easy_drawing=True)
 
         angle_distance = 360 / size
         inner_radius = constants.GRAPH_PENTAGRAM_RADIUS
@@ -181,7 +181,7 @@ class GraphFactory:
 
 
 class Graph:
-    def __init__(self, size_factor, x, y, width, height, state_saving=False):
+    def __init__(self, size_factor, x, y, width, height, state_saving=False, easy_drawing=False):
         self.size_factor = size_factor
         self.groups = []
         self.vertices = {}
@@ -194,6 +194,7 @@ class Graph:
         self.optimal_edge_set = None
         self.optimal_groups = None
         self.vertices_color = None
+        self.easy_drawing = easy_drawing
         self.state_saving = state_saving
         self.prev_state = None
         self._has_changed = False
@@ -508,7 +509,7 @@ class Graph:
 
         # draw groups
         for group in self.groups:
-            group.draw(self.surface, group == highlight_group)
+            group.draw(self.surface, group == highlight_group, self.easy_drawing)
 
         # draw edges
         for edge in self.edges:
@@ -654,7 +655,7 @@ class Group:
                 return False
         return True
 
-    def draw(self, surface, highlight):
+    def draw(self, surface, highlight, easy_drawing=False):
         size_increase = 0
         if highlight:
             size_increase = 5
@@ -665,7 +666,7 @@ class Group:
             gfxdraw.aacircle(surface, *vertex.pos, radius, LIGHT_BLUE)
 
         if len(self.vertices) > 1:
-            self.polygon = calculate_polygon(dict([(vertex.id, vertex.pos) for vertex in self.vertices.values()]), list(set([edge.tuple for vertex in self.vertices.values() for edge in vertex.edges.values()])), radius)
+            self.polygon = calculate_polygon(dict([(vertex.id, vertex.pos) for vertex in self.vertices.values()]), list(set([edge.tuple for vertex in self.vertices.values() for edge in vertex.edges.values()])), radius, easy_drawing)
 
             gfxdraw.filled_polygon(surface, self.polygon, LIGHT_BLUE)
             gfxdraw.aapolygon(surface, self.polygon, LIGHT_BLUE)

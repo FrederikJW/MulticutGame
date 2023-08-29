@@ -8,7 +8,6 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
 import constants
-import utils
 
 
 def generate_distinct_colors(n):
@@ -41,7 +40,7 @@ def calculate_update_vector(center_new, center_old, total_nodes, relative_nodes)
     return val_x, val_y
 
 
-def calculate_polygon(points, edges, radius):
+def calculate_polygon(points, edges, radius, ignore_edges=False):
     center = np.zeros((2,))
     for point_pos in points.values():
         center += np.array(point_pos)
@@ -60,12 +59,12 @@ def calculate_polygon(points, edges, radius):
     while True:
         angles = []
         for point_id, point_pos in points.items():
-            if point_id == current_point or ((current_point, point_id) not in edges
-                                             and (point_id, current_point) not in edges):
+            if point_id == current_point or point_id == prev_point:
                 continue
 
-            if point_id == prev_point:
+            if not ignore_edges and (current_point, point_id) not in edges and (point_id, current_point) not in edges:
                 continue
+
             current_point_pos = points[current_point]
             angle = get_angle(current_point_pos, point_pos)
             angles.append((point_id, angle))
@@ -127,7 +126,7 @@ def calculate_polygon(points, edges, radius):
         if intersection is not None:
             rounded_polygon.pop(i+1)
             rounded_polygon.pop(i+1)
-            rounded_polygon.insert(i+1, utils.round_pos(intersection))
+            rounded_polygon.insert(i+1, round_pos(intersection))
             continue
         i += 1
 
