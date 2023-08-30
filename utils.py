@@ -56,6 +56,37 @@ def calculate_polygon(points, edges, radius, ignore_edges=False):
     current_point = start_point
     prev_point = None
 
+    next_vertex_id = max(points.keys()) + 1
+
+    m = 0
+    n = 0
+    # add intersection of lines as points to guarantee a path around the group
+    while m < len(edges):
+        n = m + 1
+        while n < len(edges):
+            edge1 = edges[m]
+            edge2 = edges[n]
+            edge1_p1 = points[edge1[0]]
+            edge1_p2 = points[edge1[1]]
+            edge2_p1 = points[edge2[0]]
+            edge2_p2 = points[edge2[1]]
+            n += 1
+            if edge1_p1 in (edge2_p1, edge2_p2) or edge1_p2 in (edge2_p1, edge2_p2):
+                continue
+            intersection = line_line_intersect(edge1_p1, edge1_p2, edge2_p1, edge2_p2)
+            if intersection is not None:
+                edges.remove(edge1)
+                edges.remove(edge2)
+                m -= 1
+                n -= 1
+                points[next_vertex_id] = intersection
+                edges.append((edge1[0], next_vertex_id))
+                edges.append((edge1[1], next_vertex_id))
+                edges.append((edge2[0], next_vertex_id))
+                edges.append((edge2[1], next_vertex_id))
+                next_vertex_id += 1
+        m += 1
+
     while True:
         angles = []
         for point_id, point_pos in points.items():

@@ -111,7 +111,7 @@ class GraphFactory:
         size = 5
         weights = GraphFactory.get_weights(15)
 
-        graph = Graph(1, *(0, 0), *constants.GAME_MODE_BODY_SIZE, easy_drawing=True)
+        graph = Graph(1, *(0, 0), *constants.GAME_MODE_BODY_SIZE)
 
         angle_distance = 360 / size
         inner_radius = constants.GRAPH_PENTAGRAM_RADIUS
@@ -668,7 +668,12 @@ class Group:
             gfxdraw.aacircle(surface, *vertex.pos, radius, LIGHT_BLUE)
 
         if len(self.vertices) > 1:
-            self.polygon = calculate_polygon(dict([(vertex.id, vertex.pos) for vertex in self.vertices.values()]), list(set([edge.tuple for vertex in self.vertices.values() for edge in vertex.edges.values()])), radius, easy_drawing)
+            vertices = dict([(vertex.id, vertex.pos) for vertex in self.vertices.values()])
+            edges = list(set([edge.tuple for vertex in self.vertices.values() for edge in vertex.edges.values()]))
+            for edge in list(edges):
+                if edge[0] not in vertices.keys() or edge[1] not in vertices.keys():
+                    edges.remove(edge)
+            self.polygon = calculate_polygon(vertices, edges, radius, easy_drawing)
 
             gfxdraw.filled_polygon(surface, self.polygon, LIGHT_BLUE)
             gfxdraw.aapolygon(surface, self.polygon, LIGHT_BLUE)
