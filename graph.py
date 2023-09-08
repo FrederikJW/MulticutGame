@@ -150,6 +150,39 @@ class GraphFactory:
         return graph
 
     @staticmethod
+    def generate_random_graph():
+        num_points = 20
+        canvas_size = constants.GAME_MODE_BODY_SIZE
+        min_distance = 80
+
+        points = []
+
+        while len(points) < num_points:
+            new_point = (random.randint(40, canvas_size[0] - 40), random.randint(40, canvas_size[1] - 40))
+
+            if all(utils.get_distance(new_point, existing_point) >= min_distance for existing_point in points):
+                points.append(new_point)
+
+        points = dict(enumerate(points))
+        edges = []
+        max_distance = 300
+        m = 0
+        n = 0
+        while m < len(points):
+            n = m + 1
+            while n < len(points):
+                if utils.get_distance(points[m], points[n]) < max_distance:
+                    if 0.5 < random.random():
+                        edges.append((m, n))
+                n += 1
+            m += 1
+
+        weights = GraphFactory.get_weights(len(edges))
+        edges = dict(zip(edges, weights))
+
+        return GraphFactory.generate_graph_from(1, points, edges)
+
+    @staticmethod
     def get_weights(num_edges, seed=None):
         weights = []
         if seed is None:

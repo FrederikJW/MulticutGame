@@ -17,8 +17,11 @@ class ClassicGameMode(GameMode):
             self.active_graph = GraphFactory.generate_complete_graph(self.size_factor, 5)
         elif graph_type == 'petersen':
             self.active_graph = GraphFactory.generate_petersen_graph()
+        elif graph_type == 'random':
+            self.active_graph = GraphFactory.generate_random_graph()
 
-        self.active_graph.reset_to_one_group()
+        if graph_type != 'random':
+            self.active_graph.reset_to_one_group()
 
         # init buttons
         margin_top = constants.GAME_MODE_MARGIN
@@ -36,8 +39,13 @@ class ClassicGameMode(GameMode):
             self.active_graph = GraphFactory.generate_complete_graph(self.size_factor, 5)
         elif self.graph_type == 'petersen':
             self.active_graph = GraphFactory.generate_petersen_graph()
+        elif self.graph_type == 'random':
+            self.active_graph = GraphFactory.generate_random_graph()
 
-        self.reset_graph(True)
+        if self.graph_type == 'random':
+            self.reset_graph(False)
+        else:
+            self.reset_graph(True)
 
     def graph_solved_event(self):
         super().graph_solved_event()
