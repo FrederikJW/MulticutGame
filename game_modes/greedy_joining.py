@@ -1,5 +1,7 @@
 import time
 
+import constants
+from button import ActionButton
 from graph import GraphFactory
 from .game_mode import GameMode
 
@@ -9,11 +11,21 @@ class GreedyJoining(GameMode):
         super().__init__(size_factor)
 
         self.active_graph = GraphFactory.generate_grid(self.size_factor, (5, 5), state_saving=True)
-        self.standard_headline = ('Greedy joining is an algorithm to get a good solution in short time. Greedy joining '
-                                  'works by joining those groups which improve your score the most. There can also be '
-                                  'multiple best joining moves. In this case you can select one by random. You do not '
-                                  'need to find the best solution yet, just try to follow and understand the '
-                                  'algorithm.')
+        self.initial_headline = ('Greedy joining is an algorithm to get a good solution in short time. Greedy joining '
+                                 'works by joining those groups which improve your score the most. There can also be '
+                                 'multiple best joining moves. In this case you can select one by random. You do not '
+                                 'need to find the best solution yet, just try to follow and understand the '
+                                 'algorithm.')
+        self.standard_headline = self.initial_headline
+
+        # init buttons
+        margin_top = constants.GAME_MODE_MARGIN
+        margin_right = constants.GAME_MODE_MARGIN
+        size = (200, 40)
+        pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
+        self.buttons.update({'regenerate': ActionButton('Regenerate', (pos_x, margin_top + 50), size, 'red',
+                                                        constants.GAME_MODE_HEAD_OFFSET, self.regenerate_graph)})
+
         self.headline_change_timestamp = None
         self.draw_necessary = True
         self.free_mode = False
@@ -25,6 +37,15 @@ class GreedyJoining(GameMode):
     def reset_graph(self, one_group=False, reset_game_mode=True):
         self.free_mode = False
         super().reset_graph(one_group, False)
+
+    def regenerate_graph(self):
+        self.active_graph = GraphFactory.generate_grid(self.size_factor, (5, 5), state_saving=True)
+        self.standard_headline = self.initial_headline
+        self.headline = self.standard_headline
+        self.buttons['reset'].deactivate()
+        self.buttons['reset2'].deactivate()
+        self.free_mode = False
+        self.draw_necessary = True
 
     def graph_solved_event(self):
         pass

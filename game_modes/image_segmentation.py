@@ -1,6 +1,6 @@
+import os
 import pickle
 import time
-import os
 
 import numpy
 import pygame
@@ -26,10 +26,10 @@ class ImageSegmentation(WalkthroughGameMode):
         margin_right = constants.GAME_MODE_MARGIN
         size = (200, 40)
         pos_x = constants.GAME_MODE_SCREEN_SIZE[0] - margin_right - size[0]
-        self.buttons.update({'switch': Switch(pygame.image.load(os.path.join(ROOT_DIR, "assets", "imageOff.png")).convert_alpha(),
-                                              (pos_x - 40 - 10, margin_top + 50), (40, 40), 'blue',
-                                              constants.GAME_MODE_HEAD_OFFSET,
-                                              second_label=pygame.image.load(os.path.join(ROOT_DIR, "assets", "imageOn.png")).convert_alpha())})
+        self.buttons.update({'switch': Switch(
+            pygame.image.load(os.path.join(ROOT_DIR, "assets", "imageOff.png")).convert_alpha(),
+            (pos_x - 40 - 10, margin_top + 50), (40, 40), 'blue', constants.GAME_MODE_HEAD_OFFSET,
+            second_label=pygame.image.load(os.path.join(ROOT_DIR, "assets", "imageOn.png")).convert_alpha())})
 
         # init steps
         self.init_game_steps([SegmentationStep1(self), SegmentationStep2(self), ])
@@ -49,12 +49,13 @@ class SegmentationStep1(GameStep):
         super().__init__(game_mode)
 
         self.has_finished = False
-        self.image_offset = (200, 20)
-        image_size = (500, 500)
+        self.image_offset = (245, 20)
+        image_size = (490, 490)
         self.image_overlay_surface = pygame.Surface(image_size)
         # self.image_overlay_surface.set_alpha(200)
         self.image_overlay_surface.set_colorkey(colors.COLOR_KEY)
-        self.image = pygame.transform.scale(pygame.image.load(os.path.join(ROOT_DIR, "assets", "PixelArtTree.png")).convert_alpha(), image_size)
+        self.image = pygame.transform.scale(
+            pygame.image.load(os.path.join(ROOT_DIR, "assets", "PixelArtTree.png")).convert_alpha(), image_size)
         self.image_overlay_rects = []
         rect_size = utils.round_pos(utils.div_pos(image_size, (10, 10)))
         for y in range(0, image_size[1], rect_size[1]):
@@ -89,6 +90,7 @@ class SegmentationStep1(GameStep):
         self.game_mode.buttons['switch'].switch_mode = False
         self.game_mode.buttons['previous'].deactivate()
         self.game_mode.buttons['next'].deactivate()
+        self.game_mode.buttons['reset'].hide()
         self.game_mode.show_points = False
 
         if self.has_finished:

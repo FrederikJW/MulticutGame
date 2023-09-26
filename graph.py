@@ -82,7 +82,7 @@ class GraphFactory:
         angle_distance = 360 / size
         radius = constants.GRAPH_PENTAGRAM_RADIUS
         if size > 5:
-            radius += (size - 5) * 20
+            radius += (size - 5) * 30
         center = ((constants.GRAPH_RELATIVE_OFFSET[0] + radius) * size_factor,
                   (constants.GRAPH_RELATIVE_OFFSET[1] + radius) * size_factor)
 
@@ -344,7 +344,8 @@ class Graph:
     def merge_groups(self, group1, group2):
         connected = False
         for edge in self.edges:
-            if (edge.vertex1.group == group1 and edge.vertex2.group == group2) or (edge.vertex1.group == group2 and edge.vertex2.group == group1):
+            if (edge.vertex1.group == group1 and edge.vertex2.group == group2) or (
+                    edge.vertex1.group == group2 and edge.vertex2.group == group1):
                 connected = True
                 break
         if not connected:
@@ -482,7 +483,8 @@ class Graph:
         group_old.remove_vertex(vertex)
         if len(group_old.vertices) == 0:
             self.groups.remove(group_old)
-        elif len(group_old.vertices.values()) != len(self.get_group_by_cut(list(group_old.vertices.values())[0], new_multicut)):
+        elif len(group_old.vertices.values()) != len(
+                self.get_group_by_cut(list(group_old.vertices.values())[0], new_multicut)):
             # if the vertices from the old group are not connected anymore after removing the vertex, the group needs
             # to be split up into new groups
             left_over_vertices = set(group_old.vertices.values())

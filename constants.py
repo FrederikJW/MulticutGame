@@ -1,7 +1,7 @@
 from utils import add_pos, sub_pos
 
 # main
-FRAMES_PER_SECOND = 30
+FRAMES_PER_SECOND = 60
 SCREEN_SIZE = (1280, 720)
 MENU_MARGIN = 50
 

@@ -58,12 +58,12 @@ class MulticutGame:
                                          action_func=partial(self.change_game_mode, 'complete')))
         self.buttons.append(ActionButton("Petersen Graph", (margin_left, 340), size, 'blue',
                                          action_func=partial(self.change_game_mode, 'petersen')))
-        self.buttons.append(ActionButton('Random Graph', (margin_left, 390), size, 'blue',
-                                         action_func=partial(self.change_game_mode, 'random')))
-        self.buttons.append(ActionButton('Image Segmentation', (margin_left, 440), size, 'blue',
+        self.buttons.append(ActionButton('Image Segmentation', (margin_left, 390), size, 'blue',
                                          action_func=partial(self.change_game_mode, 'imagesegmentation')))
-        self.buttons.append(ActionButton('Greedy Joining', (margin_left, 490), size, 'blue',
+        self.buttons.append(ActionButton('Greedy Joining', (margin_left, 440), size, 'blue',
                                          action_func=partial(self.change_game_mode, 'greedyjoining')))
+        self.buttons.append(ActionButton('', (margin_left, 490), size, 'blue'))
+        self.buttons[-1].deactivate()
         self.buttons.append(ActionButton('', (margin_left, 540), size, 'blue'))
         self.buttons[-1].deactivate()
         self.buttons.append(ActionButton('', (margin_left, 590), size, 'blue'))
